@@ -11,9 +11,47 @@ var app = express();
 
 require("dotenv").config();
 
-const db = require("./models")
+const db = require("./models");
 
-db.sequelize.authenticate().then(() => console.log("Konektovano na bazu")).catch((err) => console.error("Error pri konekciji: ", err))
+(async () => {
+  try {
+    await db.sequelize.authenticate();
+    console.log("DB POVEZAN");
+
+    await db.User.sync({ alter: true });
+    await db.SellerProfile.sync({ alter: true });
+
+    await db.Book.sync({ alter: true });
+    await db.BookImage.sync({ alter: true });
+    await db.BookTag.sync({ alter: true });
+    await db.BookPickupCity.sync({ alter: true });
+
+    await db.Cart.sync({ alter: true });
+    await db.CartItem.sync({ alter: true });
+    await db.Order.sync({ alter: true });
+    await db.OrderItem.sync({ alter: true });
+    await db.ExchangeRequest.sync({ alter: true });
+    await db.ExchangeRequestedBook.sync({ alter: true });
+    await db.ExchangeOfferedBook.sync({ alter: true });
+
+    await db.BookRating.sync({ alter: true });
+    await db.BookComment.sync({ alter: true });
+    await db.SellerReview.sync({ alter: true });
+
+    await db.Conversation.sync({ alter: true });
+    await db.ConversationBook.sync({ alter: true });
+    await db.Message.sync({ alter: true });
+    await db.ConversationRead.sync({ alter: true });
+
+    await db.Report.sync({ alter: true });
+    await db.Notification.sync({ alter: true });
+
+    
+    console.log("DB SYNCED");
+  } catch (e) {
+    console.error("DB ERROR: ", e);
+  }
+})();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
