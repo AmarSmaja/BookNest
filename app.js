@@ -11,21 +11,6 @@ var app = express();
 
 require("dotenv").config();
 
-const db = require("./models");
-
-(async () => {
-  try {
-    await db.sequelize.authenticate();
-    console.log("DB POVEZAN");
-
-    await db.sequelize.sync({ alter: true });
-    
-    console.log("DB SYNCED");
-  } catch (e) {
-    console.error("DB ERROR: ", e);
-  }
-})();
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
