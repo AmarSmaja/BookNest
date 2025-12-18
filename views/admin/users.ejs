@@ -1,0 +1,54 @@
+<h1>Admin - Users</h1>
+<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+
+<table border="1" cellpadding="6">
+  <tr>
+    <th>ID</th><th>Email</th><th>Ime</th><th>Role</th><th>Status</th><th>Blokiran do</th><th>Akcije</th>
+  </tr>
+  <% users.forEach(u => { %>
+    <tr>
+      <td><%= u.id %></td>
+      <td><%= u.email %></td>
+      <td><%= u.ime %> <%= u.prezime %></td>
+      <td><%= u.role %></td>
+      <td><%= u.status %></td>
+      <td><%= u.blokiran_do ? new Date(u.blokiran_do).toLocaleString() : "" %></td>
+      <td>
+        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/role">
+          <select name="role">
+            <option>ADMIN</option>
+            <option>PRODAVAC</option>
+            <option>KUPAC</option>
+          </select>
+          <button>Set role</button>
+        </form>
+
+        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/status">
+          <select name="status">
+            <option>AKTIVAN</option>
+            <option>DEAKTIVIRAN</option>
+            <option>ARHIVIRAN</option>
+            <option>BLOKIRAN</option>
+          </select>
+          <button>Set status</button>
+        </form>
+
+        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/block">
+          <select name="mode">
+            <option value="15">15 days</option>
+            <option value="permanent">permanent</option>
+          </select>
+          <button>Block</button>
+        </form>
+
+        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/unblock">
+          <button>Unblock</button>
+        </form>
+
+        <form method="post" action="/auth/logout">
+          <button type="submit">Logout</button>
+        </form>
+      </td>
+    </tr>
+  <% }) %>
+</table>
