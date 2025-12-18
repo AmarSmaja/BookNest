@@ -47,7 +47,7 @@ const Book = sequelize.define(
         },
 
         opis: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.TEXT,
             allowNull: true,
         },
 

@@ -1,0 +1,23 @@
+<h1><%= knjiga.naziv %></h1>
+
+<% if (knjiga.photo_url) { %>
+  <img src="<%= knjiga.photo_url %>" alt="cover" style="max-width:250px; height:auto;" />
+<% } %>
+
+<p><strong>Autor:</strong> <%= knjiga.autor %></p>
+<p><strong>Izdavač:</strong> <%= knjiga.izdavac || "-" %></p>
+<p><strong>Godina:</strong> <%= knjiga.publish_year || "-" %></p>
+
+<p><strong>Žanr:</strong> <%= knjiga.zanrNaziv %></p>
+<p><strong>Jezik:</strong> <%= knjiga.jezikNaziv %></p>
+<p><strong>Stanje:</strong> <%= knjiga.stanjeNaziv %></p>
+
+<p><strong>Cijena:</strong> <%= knjiga.cijena %></p>
+<p><strong>Status:</strong> <%= knjiga.status %></p>
+<p><strong>Prodavač:</strong> <%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %></p>
+
+<hr />
+<h3>Opis</h3>
+<p><%= knjiga.opis || "Nema opisa." %></p>
+
+<p><a href="/">← Nazad</a></p>

@@ -4,11 +4,13 @@
  * Module dependencies.
  */
 
+require("dotenv").config();
+
 var app = require('../app');
+const db = require("../models");
+
 var debug = require('debug')('booknest:server');
 var http = require('http');
-
-const db = require("../models");
 
 (async () => {
   try {

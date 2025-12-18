@@ -1,11 +1,32 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
-</html>
+<h1><%= title %></h1>
+
+<% if (!knjige || knjige.length === 0) { %>
+  <p>Nema aktivnih knjiga.</p>
+<% } else { %>
+  <ul style="list-style:none; padding:0;">
+    <% knjige.forEach(b => { %>
+      <li style="margin: 12px 0; padding: 12px; border: 1px solid #444;">
+        <div style="display:flex; gap:12px;">
+          <div style="width:120px;">
+            <% if (b.glavnaSlikaUrl) { %>
+              <img src="<%= b.glavnaSlikaUrl %>" alt="cover" style="width:120px; height:auto;" />
+            <% } %>
+          </div>
+
+          <div>
+            <h3 style="margin:0;">
+              <a href="/books/<%= b.id %>"><%= b.naziv %></a>
+            </h3>
+            <div><strong>Autor:</strong> <%= b.autor %></div>
+            <div><strong>Žanr:</strong> <%= b.zanrNaziv %> | <strong>Jezik:</strong> <%= b.jezikNaziv %> | <strong>Stanje:</strong> <%= b.stanjeNaziv %></div>
+            <div><strong>Cijena:</strong> <%= b.cijena %></div>
+            <div><strong>Prodavač:</strong> <%= b.prodavacIme %> <%= b.prodavacPrezime %></div>
+            <% if (b.spremnaZaRazmjenu) { %>
+              <div>Spremna za razmjenu</div>
+            <% } %>
+          </div>
+        </div>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>

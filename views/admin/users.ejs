@@ -5,44 +5,44 @@
   <tr>
     <th>ID</th><th>Email</th><th>Ime</th><th>Role</th><th>Status</th><th>Blokiran do</th><th>Akcije</th>
   </tr>
-  <% users.forEach(u => { %>
+  <% users.forEach(user => { %>
     <tr>
-      <td><%= u.id %></td>
-      <td><%= u.email %></td>
-      <td><%= u.ime %> <%= u.prezime %></td>
-      <td><%= u.role %></td>
-      <td><%= u.status %></td>
-      <td><%= u.blokiran_do ? new Date(u.blokiran_do).toLocaleString() : "" %></td>
+      <td><%= user.id %></td>
+      <td><%= user.email %></td>
+      <td><%= user.ime %> <%= user.prezime %></td>
+      <td><%= user.role %></td>
+      <td><%= user.status %></td>
+      <td><%= user.blokiran_do ? new Date(user.blokiran_do).toLocaleString() : "" %></td>
       <td>
-        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/role">
+        <form style="display:inline" method="post" action="/admin/users/<%= user.id %>/role">
           <select name="role">
-            <option>ADMIN</option>
-            <option>PRODAVAC</option>
-            <option>KUPAC</option>
+            <option>Admin</option>
+            <option>Prodavac</option>
+            <option>Kupac</option>
           </select>
-          <button>Set role</button>
+          <button>Postavi Role</button>
         </form>
 
-        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/status">
+        <form style="display:inline" method="post" action="/admin/users/<%= user.id %>/status">
           <select name="status">
-            <option>AKTIVAN</option>
-            <option>DEAKTIVIRAN</option>
-            <option>ARHIVIRAN</option>
-            <option>BLOKIRAN</option>
+            <option>Aktivan</option>
+            <option>Deaktiviran</option>
+            <option>Arhiviran</option>
+            <option>Blokiran</option>
           </select>
-          <button>Set status</button>
+          <button>Postavi Status</button>
         </form>
 
-        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/block">
+        <form style="display:inline" method="post" action="/admin/users/<%= user.id %>/block">
           <select name="mode">
-            <option value="15">15 days</option>
-            <option value="permanent">permanent</option>
+            <option value="15">15 dana</option>
+            <option value="permanent">Zauvijek</option>
           </select>
-          <button>Block</button>
+          <button>Blokiraj</button>
         </form>
 
-        <form style="display:inline" method="post" action="/admin/users/<%= u.id %>/unblock">
-          <button>Unblock</button>
+        <form style="display:inline" method="post" action="/admin/users/<%= user.id %>/unblock">
+          <button>Odblokiraj</button>
         </form>
 
         <form method="post" action="/auth/logout">
