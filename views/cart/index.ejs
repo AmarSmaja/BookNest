@@ -1,0 +1,39 @@
+<h1><%= title %></h1>
+
+<% if (!items || items.length === 0) { %>
+  <p>Korpa je prazna.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Knjiga</th>
+        <th>Cijena</th>
+        <th>Količina</th>
+        <th>Ukupno</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% items.forEach(i => { %>
+        <tr>
+          <td><%= i.book.naziv %> — <%= i.book.autor %></td>
+          <td><%= i.book.cijena %></td>
+          <td><%= i.kolicina %></td>
+          <td><%= (Number(i.book.cijena) * Number(i.kolicina)).toFixed(2) %></td>
+          <td>
+            <form method="post" action="/cart/remove">
+              <input type="hidden" name="cartItemId" value="<%= i.id %>"/>
+              <button type="submit">Ukloni</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <p><strong>Ukupno:</strong> <%= ukupno.toFixed(2) %></p>
+
+  <form method="post" action="/orders/checkout">
+    <button type="submit">Checkout</button>
+  </form>
+<% } %>

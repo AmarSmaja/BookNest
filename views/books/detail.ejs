@@ -20,4 +20,9 @@
 <h3>Opis</h3>
 <p><%= knjiga.opis || "Nema opisa." %></p>
 
+<form method="post" action="/cart/add" style="margin-top: 12px;">
+  <input type="hidden" name="bookId" value="<%= knjiga.id %>"/>
+  <button type="submit">Dodaj u korpu</button>
+</form>
+
 <p><a href="/">← Nazad</a></p>

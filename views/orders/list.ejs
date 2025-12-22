@@ -1,0 +1,28 @@
+<h1><%= title %></h1>
+
+<% if (!orders || orders.length === 0) { %>
+  <p>Nema narudžbi.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tip</th>
+        <th>Status</th>
+        <th>Ukupno</th>
+        <th>Završena</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% orders.forEach(o => { %>
+        <tr>
+          <td><%= o.id %></td>
+          <td><%= o.tip %></td>
+          <td><%= o.status %></td>
+          <td><%= o.ukupnaCijena %></td>
+          <td><%= o.zavrsenaAt ? o.zavrsenaAt : '-' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>

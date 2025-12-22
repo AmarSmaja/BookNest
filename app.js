@@ -41,6 +41,9 @@ app.use("/auth", require("./routes/auth"));
 app.use("/admin", require("./routes/admin"));
 app.use("/seller", require("./routes/sellerBooks"));
 
+app.use("/cart", require("./routes/cart"));
+app.use("/orders", require("./routes/orders"));
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
