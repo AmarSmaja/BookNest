@@ -8,12 +8,26 @@ function requireAuth(req, res, next) {
     next();
 }
 
-function requireRole(role) {
+function requireRole(roles) {
     return (req, res, next) => {
         if (!req.session?.user) return res.redirect("/auth/login");
+        
         if (req.session.user.role !== role) return res.status(403).send("Nemate pristup.");
+        
         next();
     };
 }
 
-module.exports = { attachUser, requireAuth, requireRole };
+function requireRoles(roles = []) {
+    return (req, res, next) => {
+        const u = req.session?.user;
+        if (!u) return res.redirect("/auth/login");
+
+        const ok = roles.includes(u.role);
+        if (!ok) return res.status(403).send("Nemate permisije!");
+
+        next();
+    }
+}
+
+module.exports = { attachUser, requireAuth, requireRole, requireRoles };

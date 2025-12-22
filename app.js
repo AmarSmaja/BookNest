@@ -31,6 +31,7 @@ app.use(session({
 
 app.use("/auth", require("./routes/auth"));
 app.use("/admin", require("./routes/admin"));
+app.use("/seller", require("./routes/sellerBooks"));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

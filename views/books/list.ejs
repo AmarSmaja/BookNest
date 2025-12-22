@@ -1,0 +1,55 @@
+<h1><%= title %></h1>
+
+<p><a href="/seller/books/new">+ Dodaj knjigu</a></p>
+
+<form method="get" action="/seller/books" style="margin: 12px 0;">
+  <label>Status:</label>
+  <select name="status">
+    <option value="ALL" <%= filters.status === 'ALL' ? 'selected' : '' %>>Sve</option>
+    <option value="Aktivna" <%= filters.status === 'Aktivna' ? 'selected' : '' %>>Aktivna</option>
+    <option value="Rezervisana" <%= filters.status === 'Rezervisana' ? 'selected' : '' %>>Rezervisana</option>
+    <option value="Prodana/Razmjenjena" <%= filters.status === 'Prodana/Razmjenjena' ? 'selected' : '' %>>Prodana/Razmjenjena</option>
+    <option value="Arhivirana" <%= filters.status === 'Arhivirana' ? 'selected' : '' %>>Arhivirana</option>
+  </select>
+
+  <label>Sort:</label>
+  <select name="sort">
+    <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Najnovije</option>
+    <option value="price_asc" <%= filters.sort === 'price_asc' ? 'selected' : '' %>>Cijena ↑</option>
+    <option value="price_desc" <%= filters.sort === 'price_desc' ? 'selected' : '' %>>Cijena ↓</option>
+    <option value="name_asc" <%= filters.sort === 'name_asc' ? 'selected' : '' %>>Naziv A-Z</option>
+  </select>
+
+  <button type="submit">Primijeni</button>
+</form>
+
+<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+
+<% if (!books || books.length === 0) { %>
+  <p>Nema knjiga za prikaz.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Naziv</th>
+        <th>Autor</th>
+        <th>Cijena</th>
+        <th>Status</th>
+        <th>Razmjena</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% books.forEach(b => { %>
+        <tr>
+          <td><%= b.id %></td>
+          <td><%= b.naziv %></td>
+          <td><%= b.autor %></td>
+          <td><%= b.cijena %></td>
+          <td><%= b.status %></td>
+          <td><%= b.is_exchangeable ? 'DA' : 'NE' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
