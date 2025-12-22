@@ -25,7 +25,7 @@
 
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
 
-<% if (!books || books.length === 0) { %>
+<% if (!knjige || knjige.length === 0) { %>
   <p>Nema knjiga za prikaz.</p>
 <% } else { %>
   <table border="1" cellpadding="6">
@@ -40,17 +40,17 @@
       </tr>
     </thead>
     <tbody>
-      <% books.forEach(b => { %>
+      <% knjige.forEach(b => { %>
         <tr>
           <td><%= b.id %></td>
           <td><%= b.naziv %></td>
           <td><%= b.autor %></td>
           <td><%= b.cijena %></td>
           <td><%= b.status %></td>
-          <td><%= b.is_exchangeable ? 'DA' : 'NE' %></td>
+          <td><%= b.spremnaZaRazmjenu ? 'DA' : 'NE' %></td>
+          <td><a href="/seller/books/<%= b.id %>/edit">Uredi</a></td>
         </tr>
       <% }) %>
-      <td><a href="/seller/books/<%= b.id %>/edit">Uredi</a></td>
     </tbody>
   </table>
 <% } %>

@@ -48,7 +48,7 @@ class SellerBooksService {
 
         if (!body.naziv || body.naziv.trim().length < 2) throw new Error("Autor je obavezan!");
         if (!body.autor || body.autor.trim().length < 2) throw new Error("Autor je obavezan!");
-        if (!body.zanr) throw new Error("Zanr je obavezan!");
+        if (!body.zanrId) throw new Error("Zanr je obavezan!");
         if (!body.jezikId) throw new Error("Jezik je obavezan!");
         if (!body.stanjeId) throw new Error("Stanje je obavezno!");
         if (body.cijena === undefined || body.cijena === null || body.cijena === "") throw new Error("Cijena mora biti validan broj!");

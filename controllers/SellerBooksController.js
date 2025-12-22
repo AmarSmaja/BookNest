@@ -4,12 +4,12 @@ class SellerBooksController {
     async list(req, res) {
         const knjige = await sellerBooksService.listMyBooks(req.session.user, req.query);
 
-        res.render("seller/books/list", {
+        res.render("books/list", {
             title: "Moje knjige",
             knjige,
             filters: {
                 status: req.query.status || "ALL",
-                sort: req.upit.sort || "newest",
+                sort: req.query.sort || "newest",
             },
             error: null,
         });
@@ -18,7 +18,7 @@ class SellerBooksController {
     async showCreate(req, res) {
         const lookups = await sellerBooksService.getCreateFormLookups();
 
-        res.render("seller/books/new", {
+        res.render("books/new", {
             title: "Dodaj knjigu",
             lookups,
             error: null,
@@ -30,7 +30,7 @@ class SellerBooksController {
         const data = await sellerBooksService.getEditData(req.session.user, req.params.id);
         if (!data) return res.status(404).send("Nije pronadjeno.");
 
-        res.render("seller/books/edit", {
+        res.render("books/edit", {
             title: "Uredi knjigu",
             lookups: data.lookups,
             error: null,
@@ -45,7 +45,7 @@ class SellerBooksController {
             return res.redirect("/seller/books");
         } catch (e) {
             const lookups = await sellerBooksService.getCreateFormLookups();
-            return res.status(400).render("seller/books/edit", {
+            return res.status(400).render("books/edit", {
                 title: "Uredi knjigu",
                 lookups, 
                 error: e.message,
@@ -61,7 +61,7 @@ class SellerBooksController {
             return res.redirect("/seller/books");
         } catch (e) {
             const lookups = await sellerBooksService.getCreateFormLookups();
-            return res.status(400).render("seller/books/new", {
+            return res.status(400).render("books/new", {
                 title: "Dodaj knjigu",
                 lookups,
                 error: e.message,
