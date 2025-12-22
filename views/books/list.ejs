@@ -50,6 +50,7 @@
           <td><%= b.is_exchangeable ? 'DA' : 'NE' %></td>
         </tr>
       <% }) %>
+      <td><a href="/seller/books/<%= b.id %>/edit">Uredi</a></td>
     </tbody>
   </table>
 <% } %>

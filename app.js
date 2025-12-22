@@ -7,6 +7,10 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+// const authRouter = require("./routes/auth");
+// const adminRouter = require("./routes/admin");
+// const sellerRouter = require("./routes/sellerBooks");
+
 var app = express();
 
 app.use(express.urlencoded({ extended: false }));
@@ -28,6 +32,10 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 7,
   }
 }))
+
+// app.use("/auth", authRouter);
+// app.use("/admin", adminRouter);
+// app.use("/seller", sellerRouter);
 
 app.use("/auth", require("./routes/auth"));
 app.use("/admin", require("./routes/admin"));

@@ -34,6 +34,28 @@ class SellerBooksDao {
         });
     }
 
+    async updateOwnedById(bookId, sellerId, payload) {
+        const knjiga = await this.findOwnedById(bookId, sellerId);
+        if (!knjiga) return null;
+
+        await knjiga.update({
+            naziv: payload.naziv,
+            autor: payload.autor,
+            izdavac: payload.izdavac || null,
+            godinaIzdavanja: payload.godinaIzdavanja ? Number(payload.godinaIzdavanja) : null,
+            opis: payload.opis || null,
+            zanrId: Number(payload.zanrId),
+            jezikId: Number(payload.jezikId),
+            stanjeId: Number(payload.stanjeId),
+            cijena: payload.cijena,
+            spremnaZaRazmjenu: !!payload.spremnaZaRazmjenu,
+            glavnaSlikaUrl: payload.glavnaSlikaUrl || null,
+            status: payload.status || book.status,
+        });
+
+        return knjiga;
+    }
+
     async findOwnedById(bookId, sellerId) {
         return db.Book.findOne({ where: { id: bookId, seller_id: sellerId }, });
     }

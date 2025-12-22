@@ -11,7 +11,6 @@ class AuthController {
             const prezime = req.body.prezime;
             const email = req.body.email;
             const password = req.body.password;
-            //const { ime, prezime, email, password } = req.body;
             await authService.register({ ime, prezime, email, password });
             return res.redirect("/auth/login");
         } catch (e) {

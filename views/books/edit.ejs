@@ -2,7 +2,7 @@
 
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
 
-<form method="post" action="/seller/books">
+<form method="post" action="/seller/books/<%= bookId %>">
   <div>
     <label>Naziv</label><br />
     <input name="naziv" value="<%= values.naziv || '' %>" required />
@@ -75,8 +75,18 @@
     </label>
   </div>
 
+  <div>
+    <label>Status</label><br />
+    <select name="status" required>
+      <option value="Aktivna" <%= values.status === 'Aktivna' ? 'selected' : '' %>>Aktivna</option>
+      <option value="Rezervisana" <%= values.status === 'Rezervisana' ? 'selected' : '' %>>Rezervisana</option>
+      <option value="Prodana/Razmjenjena" <%= values.status === 'Prodana/Razmjenjena' ? 'selected' : '' %>>Prodana/Razmjenjena</option>
+      <option value="Arhivirana" <%= values.status === 'Arhivirana' ? 'selected' : '' %>>Arhivirana</option>
+    </select>
+  </div>
+
   <div style="margin-top:12px;">
-    <button type="submit">Sačuvaj</button>
+    <button type="submit">Sačuvaj izmjene</button>
     <a href="/seller/books">Otkaži</a>
   </div>
 </form>

@@ -8,7 +8,7 @@ function requireAuth(req, res, next) {
     next();
 }
 
-function requireRole(roles) {
+function requireRole(role) {
     return (req, res, next) => {
         if (!req.session?.user) return res.redirect("/auth/login");
         
