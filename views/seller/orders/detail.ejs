@@ -1,0 +1,42 @@
+<h1><%= title %></h1>
+
+<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+
+<p><strong>Status:</strong> <%= order.status %></p>
+<p><strong>Ukupno:</strong> <%= order.ukupnaCijena %></p>
+
+<h3>Stavke</h3>
+<% if (!items || items.length === 0) { %>
+  <p>Nema stavki.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Knjiga</th>
+        <th>Cijena u trenutku</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% items.forEach(i => { %>
+        <tr>
+          <td><%= i.knjiga ? (i.knjiga.naziv + " — " + i.knjiga.autor) : ("Book ID: " + i.bookId) %></td>
+          <td><%= i.cijenaUTrenutku %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<h3>Promijeni status</h3>
+<form method="post" action="/seller/orders/<%= order.id %>/status">
+  <select name="status">
+  <option value="Na_cekanju" <%= order.status === "Na_cekanju" ? "selected" : "" %>>Na cekanju</option>
+  <option value="Prihvacena" <%= order.status === "Prihvacena" ? "selected" : "" %>>Prihvacena</option>
+  <option value="Odbijena"   <%= order.status === "Odbijena" ? "selected" : "" %>>Odbijena</option>
+  <option value="Zavrsena"   <%= order.status === "Zavrsena" ? "selected" : "" %>>Zavrsena</option>
+  <option value="Otkazana"   <%= order.status === "Otkazana" ? "selected" : "" %>>Otkazana</option>
+</select>
+  <button type="submit">Sačuvaj</button>
+</form>
+
+<p><a href="/seller/orders">Nazad</a></p>

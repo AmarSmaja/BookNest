@@ -10,7 +10,7 @@
         <th>Tip</th>
         <th>Status</th>
         <th>Ukupno</th>
-        <th>Završena</th>
+        <th>Akcija</th>
       </tr>
     </thead>
     <tbody>
@@ -20,7 +20,7 @@
           <td><%= o.tip %></td>
           <td><%= o.status %></td>
           <td><%= o.ukupnaCijena %></td>
-          <td><%= o.zavrsenaAt ? o.zavrsenaAt : '-' %></td>
+          <td><a href="/seller/orders/<%= o.id %>">Detalji</a></td>
         </tr>
       <% }) %>
     </tbody>

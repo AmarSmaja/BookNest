@@ -6,6 +6,7 @@ class OrdersController {
             await orderService.checkoutFromCart(req.session.user);
             return res.redirect("/orders");
         } catch (e) {
+            console.error("CHECKOUT ERROR:", e);
             return res.status(400).send(e.message);
         }
     }

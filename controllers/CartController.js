@@ -3,7 +3,7 @@ const cartService = require("../services/CartService");
 class CartController {
     async show(req, res) {
         const data = await cartService.viewCart(req.session.user);
-        res.render("cart/index", { title: "Korpa", ...data, error: null });
+        res.render("cart/index", { title: "Korpa", items: data.items, ukupno: data.ukupno, error: null });
     }
 
     async add(req, res) {

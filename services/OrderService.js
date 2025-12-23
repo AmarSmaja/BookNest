@@ -48,7 +48,7 @@ class OrderService {
                     const qty = Number(r.kolicina) || 1;
                     for (let i = 0; i < qty; i++) {
                         await db.OrderItem.create({
-                            orderId: order.id,
+                            orderId: narudzba.id,
                             bookId: r.book.id,
                             cijenaUTrenutku: r.book.cijena,
                         }, { transaction: t });
