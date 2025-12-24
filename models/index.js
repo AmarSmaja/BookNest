@@ -2,7 +2,7 @@ const sequelize = require("../config/db");
 
 //lookup tabele
 const Genre = require("./lookup/Genre");
-const Langauge = require("./lookup/Language");
+const Language = require("./lookup/Language");
 const City = require("./lookup/City");
 const BookCondition = require("./lookup/BookCondition");
 const Tag = require("./lookup/Tag");
@@ -36,9 +36,65 @@ const Report = require("./moderacija/Report");
 const Notification = require("./moderacija/Notification");
 
 const db = {
-    sequelize, Genre, Langauge, City, BookCondition, Tag, User, SellerProfile, Book, BookImage, BookTag, BookPickupCity, Cart, CartItem, Order, OrderItem, 
+    sequelize, Genre, Language, City, BookCondition, Tag, User, SellerProfile, Book, BookImage, BookTag, BookPickupCity, Cart, CartItem, Order, OrderItem, 
     ExchangeRequest, ExchangeOfferedBook, ExchangeRequestedBook, BookRating, BookComment, SellerReview, Conversation, ConversationBook, Message, ConversationRead,
     Report, Notification
 };
+
+db.Cart.hasMany(db.CartItem, {
+    foreignKey: "cartId",
+    as: "items"
+});
+
+db.CartItem.belongsTo(db.Cart, {
+    foreignKey: "cartId"
+});
+
+db.CartItem.belongsTo(db.Book, {
+    foreignKey: "bookId",
+    as: "book"
+});
+
+db.Book.hasMany(db.CartItem, {
+    foreignKey: "bookId"
+});
+
+db.Order.hasMany(db.OrderItem, {
+    foreignKey: "orderId",
+    as: "items"
+});
+
+db.OrderItem.belongsTo(db.Order, {
+    foreignKey: "orderId"
+});
+
+db.Order.belongsTo(db.User, {
+    foreignKey: "kupacId",
+    as: "kupac"
+});
+
+db.Order.belongsTo(db.User, {
+    foreignKey: "prodavacId",
+    as: "prodavac"
+});
+
+db.OrderItem.belongsTo(db.Book, {
+    foreignKey: "bookId",
+    as: "knjiga"
+});
+
+db.Book.hasMany(db.OrderItem, {
+    foreignKey: "bookId"
+});
+
+db.Book.belongsTo(db.User, {
+    foreignKey: "prodavacId",
+    as: "prodavac"
+});
+
+db.User.hasMany(db.Book, {
+    foreignKey: "prodavacId",
+    as: "mojeKnjige"
+});
 
 module.exports = db;

@@ -15,23 +15,23 @@ class OrderDao {
     }
 
     async getOrderItemsWithBooks(orderId) {
-        const items = await db.OrderItem.findAll({
+        return db.OrderItem.findAll({
             where: { orderId },
+            include: [{ model: db.Book, as: "knjiga", required: false }],
             order: [["id", "ASC"]],
         });
+    }
 
-        const bookIds = items.map(i => i.bookId);
-        const knjige = bookIds.length ? await db.Book.findAll({ where: { id: bookIds } }) : [];
+    async getOrderBookIds(orderId, transaction) {
+        const rows = await db.OrderItem.findAll({
+            where: { orderId },
+            attributes: ["bookId"],
+            transaction,
+        });
 
-        const map = new Map(knjige.map(b => [b.id, b]));
-        const rows = items.map(i => ({
-            id: i.id,
-            cijenaUTrenutku: i.cijenaUTrenutku,
-            bookId: i.bookId,
-            book: map.get(i.bookId) || null,
-        }));
+        const ids = rows.map(r => Number(r.bookId)).filter(Number.isFinite);
 
-        return rows;
+        return [...new Set(ids)];
     }
 
     async updateStatus(orderId, sellerId, status, transaction) {

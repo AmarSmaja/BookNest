@@ -2,6 +2,7 @@ const db = require("../models");
 const orderDao = require("../dao/OrderDao");
 
 const DOPUSTENO = ["Na_cekanju", "Prihvacena", "Odbijena", "Zavrsena", "Otkazana"];
+const NEDOPUSTENO = ["Odbijena", "Otkazana", "Zavrsena"];
 
 class SellerOrdersService {
     async listMyOrders(user) {
@@ -28,14 +29,46 @@ class SellerOrdersService {
         const narudzba = await orderDao.findOwnedById(id, user.id);
         if (!narudzba) throw new Error("Narudzba nije pronadjena!");
 
-        if (narudzba.status === "Zavrsena" || narudzba.status === "Odbijena") {
-            throw new Error("Narudzba je zavrsena ili odbijena!");
+        if (NEDOPUSTENO.includes(narudzba.status)) {
+            throw new Error("Narudzba je vec zavrsena ili odbijena!");
         }
 
         return db.sequelize.transaction(async (t) => {
             await orderDao.updateStatus(narudzba.id, user.id, noviStatus, t);
 
+            const rows = await db.OrderItem.findAll({
+                where: { orderId: narudzba.id },
+                attributes: ["bookId"],
+                raw: true,
+                transaction: t,
+            });
+
+            const bookIdsSkup = new Set();
+            
+            for (const r of rows) {
+                const id = Number(r.bookId);
+                if (!isNaN(id)) bookIdsSkup.add(id);
+            }
+
+            const bookIds = Array.from(bookIdsSkup);
+
+            if (bookIds.length === 0) return;
+
+            if (noviStatus === "Odbijena" || noviStatus === "Otkazana") {
+                await db.Book.update(
+                    { status: "Aktivna" },
+                    { where: { id: bookIds }, transaction: t }
+                );
+
+                await orderDao.markCompleted(narudzba.id, user.id, t);
+            }
+
             if (noviStatus === "Zavrsena") {
+                await db.Book.update(
+                    { status: "Prodana/Razmjenjena" },
+                    { where: { id: bookIds }, transaction: t }
+                );
+
                 await orderDao.markCompleted(narudzba.id, user.id, t);
             }
         });
