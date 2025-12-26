@@ -1,6 +1,8 @@
 <h1><%= title %></h1>
 
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
 
 <p><strong>Status:</strong> <%= order.status %></p>
 <p><strong>Ukupno:</strong> <%= order.ukupnaCijena %></p>
@@ -27,16 +29,23 @@
   </table>
 <% } %>
 
-<h3>Promijeni status</h3>
-<form method="post" action="/seller/orders/<%= order.id %>/status">
-  <select name="status">
-  <option value="Na_cekanju" <%= order.status === "Na_cekanju" ? "selected" : "" %>>Na cekanju</option>
-  <option value="Prihvacena" <%= order.status === "Prihvacena" ? "selected" : "" %>>Prihvacena</option>
-  <option value="Odbijena"   <%= order.status === "Odbijena" ? "selected" : "" %>>Odbijena</option>
-  <option value="Zavrsena"   <%= order.status === "Zavrsena" ? "selected" : "" %>>Zavrsena</option>
-  <option value="Otkazana"   <%= order.status === "Otkazana" ? "selected" : "" %>>Otkazana</option>
-</select>
-  <button type="submit">Sačuvaj</button>
-</form>
+<%
+  const terminalno = ["Odbijena", "Otkazana", "Zavrsena"].includes(order.status);
+%>
+
+<% if (!terminalno) { %>
+  <h3>Promijeni status</h3>
+  <form method="post" action="/seller/orders/<%= order.id %>/status">
+    <select name="status">
+      <option value="Na_cekanju" <%= order.status === "Na_cekanju" ? "selected" : "" %>>Na cekanju</option>
+      <option value="Prihvacena" <%= order.status === "Prihvacena" ? "selected" : "" %>>Prihvaceno</option>
+      <option value="Odbijena"    <%= order.status === "Odbijena" ? "selected" : "" %>>Odbijeno</option>
+      <option value="Zavrsena"    <%= order.status === "Zavrsena" ? "selected" : "" %>>Zavrseno</option>
+    </select>
+    <button type="submit">Sačuvaj</button>
+  </form>
+<% } else { %>
+  <p><em>Narudžba je završena (terminalni status) i ne može se mijenjati.</em></p>
+<% } %>
 
 <p><a href="/seller/orders">Nazad</a></p>

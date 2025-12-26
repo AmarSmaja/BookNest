@@ -5,6 +5,16 @@ const notificationDao = require("../dao/NotificationDao");
 const DOPUSTENO = ["Na_cekanju", "Prihvacena", "Odbijena", "Zavrsena", "Otkazana"];
 const NEDOPUSTENO = ["Odbijena", "Otkazana", "Zavrsena"];
 
+function dozvoljenPrijelaz(from, to) {
+    if (!DOPUSTENO.includes(to)) return false;
+    if (NEDOPUSTENO.includes(from)) return false;
+
+    if (from === "Na_cekanju" && (to === "Prihvacena" || to === "Odbijena")) return true;
+    if (from === "Prihvacena" && (to === "Zavrsena" || to === "Odbijena")) return true;
+
+    return false;
+}
+
 class SellerOrdersService {
     async listMyOrders(user) {
         return orderDao.findForSeller(user.id);
@@ -24,15 +34,18 @@ class SellerOrdersService {
     async changeStatus(user, orderId, noviStatus) {
         const id = Number(orderId);
         if (!Number.isFinite(id)) throw new Error("Neispravan ID narudzbe!");
-
         if (!DOPUSTENO.includes(noviStatus)) throw new Error("Neispravan status!");
 
         const narudzba = await orderDao.findOwnedById(id, user.id);
         if (!narudzba) throw new Error("Narudzba nije pronadjena!");
 
-        if (NEDOPUSTENO.includes(narudzba.status)) {
-            throw new Error("Narudzba je vec zavrsena ili odbijena!");
+        if (!dozvoljenPrijelaz(narudzba.status, noviStatus)) {
+            throw new Error(`Nije dozvoljeno: ${narudzba.status} -> ${noviStatus}`);
         }
+
+        // if (NEDOPUSTENO.includes(narudzba.status)) {
+        //     throw new Error("Narudzba je vec zavrsena ili odbijena!");
+        // }
 
         return db.sequelize.transaction(async (t) => {
             await orderDao.updateStatus(narudzba.id, user.id, noviStatus, t);
@@ -57,7 +70,7 @@ class SellerOrdersService {
             
             for (const r of rows) {
                 const id = Number(r.bookId);
-                if (!isNaN(id)) bookIdsSkup.add(id);
+                if (!Number.isNaN(id)) bookIdsSkup.add(id);
             }
 
             const bookIds = Array.from(bookIdsSkup);
