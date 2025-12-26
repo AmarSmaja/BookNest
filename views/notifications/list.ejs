@@ -1,0 +1,36 @@
+<h1><%= title %></h1>
+
+<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+
+<% if (!notifikacije || notifikacije.length === 0) { %>
+  <p>Nema notifikacija.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tip</th>
+        <th>Pročitano</th>
+        <th>Payload</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% notifikacije.forEach(n => { %>
+        <tr>
+          <td><%= n.id %></td>
+          <td><%= n.tip %></td>
+          <td><%= n.isRead ? "DA" : "NE" %></td>
+          <td><pre><%= JSON.stringify(n.payloadJson, null, 2) %></pre></td>
+          <td>
+            <% if (!n.isRead) { %>
+              <form method="post" action="/notifications/<%= n.id %>/read">
+                <button type="submit">Označi pročitano</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>

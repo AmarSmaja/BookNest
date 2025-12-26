@@ -1,5 +1,6 @@
 const db = require("../models");
 const orderDao = require("../dao/OrderDao");
+const notificationDao = require("../dao/NotificationDao");
 
 const DOPUSTENO = ["Na_cekanju", "Prihvacena", "Odbijena", "Zavrsena", "Otkazana"];
 const NEDOPUSTENO = ["Odbijena", "Otkazana", "Zavrsena"];
@@ -35,6 +36,15 @@ class SellerOrdersService {
 
         return db.sequelize.transaction(async (t) => {
             await orderDao.updateStatus(narudzba.id, user.id, noviStatus, t);
+
+            await notificationDao.create({
+                userId: narudzba.kupacId,
+                tip: "Status_narudzbe",
+                payloadJson: {
+                    orderId: narudzba.id,
+                    status: noviStatus,
+                }
+            }, t);
 
             const rows = await db.OrderItem.findAll({
                 where: { orderId: narudzba.id },

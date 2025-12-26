@@ -27,17 +27,24 @@ const Notification = sequelize.define(
             allowNull: false,
             field: "type",
             validate: {
-                isIn: [["Nova_narudzba", "Nova_poruka", "Nova_ocjena_knjige", "Novi_komentar_knjige", "Nova_ocjena_prodavaca", "Report_prijem", "Report_rijesen"]],
+                isIn: [["Nova_narudzba",
+                    "Status_narudzbe", 
+                    "Nova_poruka", 
+                    "Nova_ocjena_knjige", 
+                    "Novi_komentar_knjige", 
+                    "Nova_ocjena_prodavaca", 
+                    "Report_prijem", 
+                    "Report_rijesen"]],
             },
         },
 
-        payload: {
+        payloadJson: {
             type: DataTypes.JSONB,
             allowNull: true,
             field: "payload_json",
         },
 
-        procitano: {
+        isRead: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,

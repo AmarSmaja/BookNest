@@ -1,5 +1,6 @@
 const db = require("../models");
 const cartDao = require("../dao/CartDao");
+const notificationDao = require("../dao/NotificationDao");
 
 class OrderService {
     async checkoutFromCart(user) {
@@ -43,6 +44,15 @@ class OrderService {
                     tip: "Prodaja",
                     ukupnaCijena: total,
                 }, { transaction: t });
+
+                await notificationDao.create({
+                    userId: sellerId,
+                    tip: "Nova_narudzba",
+                    payloadJson: {
+                        orderId: narudzba.id,
+                        kupacId: user.id,
+                    },
+                }, t);
 
                 for (const r of sellerRows) {
                     const qty = Number(r.kolicina) || 1;
