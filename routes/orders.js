@@ -5,5 +5,7 @@ const { requireAuth } = require("../middlewares/auth");
 router.get("/", requireAuth, ordersController.myOrders);
 router.get("/:id", requireAuth, ordersController.detail);
 router.post("/checkout", requireAuth, ordersController.checkout);
+router.post("/:id", requireAuth, ordersController.detail);
+router.post("/:id/cancel", requireAuth, ordersController.otkazi)
 
 module.exports = router;

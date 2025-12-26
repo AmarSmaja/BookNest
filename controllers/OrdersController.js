@@ -27,6 +27,23 @@ class OrdersController {
             error: null,
         });
     }
+
+    async otkazi(req, res) {
+        try {
+            await orderService.otkaziNarudzbu(req.session.user.id, req.params.id);
+            return res.redirect('/orders');
+        } catch (e) {
+            const data = await orderService.uzmiDetaljeNarudzbe(req.session.user.id, req.params.id);
+            if (!data) return res.status(404).send("Narudzba nije pronadjena!");
+
+            return res.status(400).render("orders/detail", {
+                title: `Narudzba #${data.narudzba.id}`,
+                narudzba: data.narudzba,
+                items: data.items,
+                error: e.message,
+            });
+        }
+    }
 }
 
 module.exports = new OrdersController();

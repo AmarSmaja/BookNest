@@ -29,5 +29,11 @@
     </tbody>
   </table>
 <% } %>
+<% if (narudzba.status === "Na_cekanju") { %>
+  <h3>Otkazivanje</h3>
+  <form method="post" action="/orders/<%= narudzba.id %>/cancel" onsubmit="return confirm('Otkazati narudžbu?');">
+    <button type="submit">Otkaži narudžbu</button>
+  </form>
+<% } %>
 
 <p><a href="/orders">Nazad</a></p>

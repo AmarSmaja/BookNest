@@ -1,6 +1,7 @@
 const db = require("../models");
 const cartDao = require("../dao/CartDao");
 const notificationDao = require("../dao/NotificationDao");
+const { noTrueLogging } = require("sequelize/lib/utils/deprecations");
 
 class OrderService {
     async checkoutFromCart(user) {
@@ -101,6 +102,49 @@ class OrderService {
         });
 
         return { narudzba, items };
+    }
+
+    async otkaziNarudzbu(buyerId, orderId) {
+        const id = Number(orderId);
+        if (!Number.isFinite(id)) throw new Error("Neispravan ID narudzbe!");
+
+        return db.sequelize.transaction(async (t) => {
+            const narudzba = await db.Order.findOne({
+                where: { id, kupacId: buyerId },
+                transaction: t,
+            });
+            if (!narudzba) throw new Error("Narudzba nije pronadjena!");
+
+            if (narudzba.status !== "Na_cekanju") {
+                throw new Error("Narudzbu je moguce otkazati samo ako je na cekanju!");
+            }
+
+            const rows = await db.OrderItem.findAll({
+                where: { orderId: narudzba.id },
+                attributes: ["bookId"],
+                raw: true,
+                transaction: t,
+            });
+
+            const bookIds = [];
+            for (const r of rows) {
+                if (r.bookId != null) bookIds.push(Number(r.bookId));
+            }
+
+            await db.Order.update(
+                { status: "Otkazana", zavrsenaAt: new Date() },
+                { where: { id: narudzba.id, kupacId: buyerId }, transaction: t }
+            );
+
+            if (bookIds.length > 0) {
+                await db.Book.update(
+                    { status: "Aktivna" },
+                    { where: { id: bookIds }, transaction: t }
+                );
+            }
+
+            return true;
+        });
     }
 }
 
