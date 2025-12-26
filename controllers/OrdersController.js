@@ -15,6 +15,18 @@ class OrdersController {
         const narudzbe = await orderService.listMyOrders(req.session.user.id);
         res.render("orders/list", { title: "Moje narudzbe", narudzbe });
     }
+
+    async detail(req, res) {
+        const data = await orderService.uzmiDetaljeNarudzbe(req.session.user.id, req.params.id);
+        if (!data || !data.narudzba) return res.status(404).send("Narudzba nije pronadjena!");
+
+        return res.render("orders/detail", {
+            title: `Narudzba ${data.narudzba.id}`,
+            narudzba: data.narudzba,
+            items: data.items,
+            error: null,
+        });
+    }
 }
 
 module.exports = new OrdersController();

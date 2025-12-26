@@ -74,6 +74,24 @@ class OrderService {
             order: [["id", "ASC"]],
         });
     }
+
+    async uzmiDetaljeNarudzbe(userId, orderId) {
+        const id = Number(orderId);
+        if (!Number.isFinite(id)) return null;
+
+        const narudzba = await db.Order.findOne({
+            where: { id, kupacId: userId },
+        });
+        if (!narudzba) return null;
+
+        const items = await db.OrderItem.findAll({
+            where: { orderId: narudzba.id },
+            include: [{ model: db.Book, as: "knjiga", required: false }],
+            order: [["id", "ASC"]],
+        });
+
+        return { narudzba, items };
+    }
 }
 
 module.exports = new OrderService();

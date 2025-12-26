@@ -21,6 +21,7 @@
           <td><%= o.status %></td>
           <td><%= o.ukupnaCijena %></td>
           <td><%= o.zavrsenaAt ? o.zavrsenaAt : '-' %></td>
+          <td><a href="/orders/<%= o.id %>">Detalji</a></td>
         </tr>
       <% }) %>
     </tbody>
