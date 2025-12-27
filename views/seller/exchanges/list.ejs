@@ -1,0 +1,26 @@
+<h1><%= title %></h1>
+
+<% if (!razmjene || razmjene.length === 0) { %>
+  <p>Nema razmjena.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>KupacID</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% razmjene.forEach(r => { %>
+        <tr>
+          <td><%= r.id %></td>
+          <td><%= r.status %></td>
+          <td><%= r.kupacId %></td>
+          <td><a href="/seller/exchanges/<%= r.id %>">Detalji</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>

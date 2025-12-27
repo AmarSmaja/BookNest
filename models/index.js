@@ -97,4 +97,32 @@ db.User.hasMany(db.Book, {
     as: "mojeKnjige"
 });
 
+db.ExchangeRequest.hasMany(db.ExchangeOfferedBook, {
+    foreignKey: "exchangeId",
+    as: "offered"
+});
+
+db.ExchangeOfferedBook.belongsTo(db.ExchangeRequest, {
+    foreignKey: "exchangeId"
+});
+
+db.ExchangeRequest.hasMany(db.ExchangeRequestedBook, {
+    foreignKey: "exchangeId",
+    as: "requested"
+});
+
+db.ExchangeRequestedBook.belongsTo(db.ExchangeRequest, {
+    foreignKey: "exchangeId"
+});
+
+db.ExchangeOfferedBook.belongsTo(db.Book, {
+    foreignKey: "bookId",
+    as: "book"
+});
+
+db.ExchangeRequestedBook.belongsTo(db.Book, {
+    foreignKey: "bookId",
+    as: "book"
+});
+
 module.exports = db;

@@ -1,0 +1,41 @@
+<h1><%= title %></h1>
+
+<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+
+<p><strong>Status:</strong> <%= razmjena.status %></p>
+<p><strong>KupacID:</strong> <%= razmjena.kupacId %></p>
+
+<h3>Tražene knjige (tvoje)</h3>
+<ul>
+  <% (razmjena.requested || []).forEach(x => { %>
+    <li><%= x.book ? (x.book.naziv + " — " + x.book.autor) : ("Book ID: " + x.bookId) %></li>
+  <% }) %>
+</ul>
+
+<h3>Ponuđene knjige (kupčeve)</h3>
+<ul>
+  <% (razmjena.offered || []).forEach(x => { %>
+    <li><%= x.book ? (x.book.naziv + " — " + x.book.autor) : ("Book ID: " + x.bookId) %></li>
+  <% }) %>
+</ul>
+
+<% if (razmjena.status === "Na_cekanju") { %>
+  <h3>Odluka</h3>
+  <form method="post" action="/seller/exchanges/<%= razmjena.id %>/status">
+    <select name="status">
+      <option value="Prihvacena">Prihvati</option>
+      <option value="Odbijena">Odbij</option>
+    </select>
+    <button type="submit">Sačuvaj</button>
+  </form>
+<% } %>
+
+<% if (razmjena.status === "Prihvacena") { %>
+  <h3>Završetak</h3>
+  <form method="post" action="/seller/exchanges/<%= razmjena.id %>/status" onsubmit="return confirm('Označiti kao završeno?');">
+    <input type="hidden" name="status" value="Zavrsena" />
+    <button type="submit">Završi razmjenu</button>
+  </form>
+<% } %>
+
+<p><a href="/seller/exchanges">Nazad</a></p>

@@ -1,0 +1,32 @@
+<h1><%= title %></h1>
+
+<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+
+<p><strong>Status:</strong> <%= ex.status %></p>
+<p><strong>ProdavacID:</strong> <%= ex.prodavacId %></p>
+
+<h3>Tražene knjige</h3>
+<ul>
+  <% (ex.requested || []).forEach(x => { %>
+    <li>
+      <%= x.book ? (x.book.naziv + " — " + x.book.autor) : ("Book ID: " + x.bookId) %>
+    </li>
+  <% }) %>
+</ul>
+
+<h3>Ponuđene knjige</h3>
+<ul>
+  <% (ex.offered || []).forEach(x => { %>
+    <li>
+      <%= x.book ? (x.book.naziv + " — " + x.book.autor) : ("Book ID: " + x.bookId) %>
+    </li>
+  <% }) %>
+</ul>
+
+<% if (ex.status === "Na_cekanju" || ex.status === "Prihvacena") { %>
+  <form method="post" action="/exchanges/<%= ex.id %>/cancel" onsubmit="return confirm('Otkazati razmjenu?');">
+    <button type="submit">Otkaži</button>
+  </form>
+<% } %>
+
+<p><a href="/exchanges">Nazad</a></p>

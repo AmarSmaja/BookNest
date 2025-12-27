@@ -43,10 +43,6 @@ class SellerOrdersService {
             throw new Error(`Nije dozvoljeno: ${narudzba.status} -> ${noviStatus}`);
         }
 
-        // if (NEDOPUSTENO.includes(narudzba.status)) {
-        //     throw new Error("Narudzba je vec zavrsena ili odbijena!");
-        // }
-
         return db.sequelize.transaction(async (t) => {
             await orderDao.updateStatus(narudzba.id, user.id, noviStatus, t);
 
