@@ -35,6 +35,84 @@ class ExchangeService {
         return exchangeDao.getDetail(id);
     }
 
+    async getCreateData(user, bookIdRaw) {
+        const bookId = Number(bookIdRaw);
+        if (!Number.isFinite(bookId)) throw new Error("Knjiga nije pronadjena!");
+
+        const requestedBook = await db.Book.findByPk(bookId);
+        if (!requestedBook) throw new Error("Knjiga nije pronadjena!");
+
+        if (requestedBook.status !== "Aktivna") throw new Error("Knjiga nije aktivna!");
+        if (Number(requestedBook.prodavacId) === Number(user.id)) throw new Error("Ne mozes razmjenjivati svoju knjigu!");
+
+        if (requestedBook.spremnaZaRazmjenu !== true) throw new Error("Ova knjiga nije dostupna za razmjenu!");
+
+        const myBooks = await db.Book.findAll({
+            where: { prodavacId: user.id, status: "Aktivna" },
+            order: [["id", "DESC"]],
+        });
+
+        return { requestedBook, myBooks };
+    }
+
+    async createFromForm(user, body) {
+        const requestedBookId = Number(body.requestedBookId);
+        if (!Number.isFinite(requestedBookId)) throw new Error("Neispravan ID trazene knjige!");
+
+        const offered = [];
+        if (Array.isArray(body.offeredBookIds)) {
+            for (const x of body.offeredBookIds) {
+                const n = Number(x);
+                if (Number.isFinite(n)) offered.push(n);
+            }
+        } else if (body.offeredBookIds != null) {
+            const n = Number(body.offeredBookIds);
+            if (Number.isFinite(n)) offered.push(n)
+        }
+
+        if (offered.length === 0) throw new Error("Moras izabrati bar jednu knjigu da ponudis!");
+
+        return db.sequelize.transaction(async (t) => {
+            const requestedBook = await db.Book.findByPk(requestedBookId, { transaction: t, lock: t.LOCK.UPDATE });
+            if (!requestedBook) throw new Error("Trazena knjiga ne postoji!");
+            if (requestedBook.status !== "Aktivna") throw new Error("Knjiga nije aktivna");
+            if (requestedBook.spremnaZaRazmjenu !== true) throw new Error("Knjiga nije spremna za razmjenu!");
+            if (Number(requestedBook.prodavacId) === Number(user.id)) throw new Error("Ne mozes razmjeniti svoje knjige!");
+
+            const myOffered = await db.Book.findAll({
+                where: { id: offered, prodavacId: user.id, status: "Aktivna" },
+                transaction: t,
+            });
+
+            if (myOffered.length !== offered.length) {
+                throw new Error("Jedna ili vise ponudjenih knjiga nisu aktivne ili nisu tvoje!");
+            }
+
+            const razmjena = await exchangeDao.createRequest({
+                kupacId: user.id,
+                prodavacId: requestedBook.prodavacId,
+                status: "Na_cekanju",
+            }, t);
+
+            await exchangeDao.addRequested(razmjena.id, [requestedBookId], t);
+            await exchangeDao.addOffered(razmjena.id, offered, t);
+
+            const idZaRezervisanje = [];
+            idZaRezervisanje.push(requestedBookId);
+
+            for (let i = 0; i < offered.length; i++) {
+                idZaRezervisanje.push(offered[i]);
+            }
+
+            await db.Book.update(
+                { status: "Rezervisana" },
+                { where: { id: idZaRezervisanje }, transaction: t }
+            );
+
+            return razmjena;
+        })
+    }
+
     async createExchangeFromBooks(user, requestedBookIds, offeredBookIds) {
         const requestedIds = uniqueIntovi(requestedBookIds);
         const offeredIds = uniqueIntovi(offeredBookIds);
@@ -113,27 +191,29 @@ class ExchangeService {
                 throw new Error("Razmjenu mozes otkazati samo ako je na cekanju ili ako je prihvacena!");
             }
 
-            const detail = await exchangeDao.getDetail(id, t);
-            
-            let requestedRows = [];
-            if (detail && Array.isArray(detail.requested)) {
-                requestedRows = detail.requested;
-            }
+            const requestedRows = await db.ExchangeRequestedBook.findAll({
+                where: { exchangeId: id },
+                attributes: ["bookId"],
+                raw: true,
+                transaction: t,
+            });
 
-            let offeredRows = [];
-            if (detail && Array.isArray(detail.offered)) {
-                offeredRows = detail.offered;
-            }
+            const offeredRows = await db.ExchangeOfferedBook.findAll({
+                where: { exchangeId: id },
+                attributes: ["bookId"],
+                raw: true,
+                transaction: t,
+            });
 
             const allIds = [];
             for (let i = 0; i < requestedRows.length; i++) {
-                const r = requestedRows[i];
-                if (r && r.bookId != null) allIds.push(r.bookId);
+                const v = Number(requestedRows[i].bookId);
+                if (Number.isFinite(v)) allIds.push(v);
             }
 
             for (let i = 0; i < offeredRows.length; i++) {
-                const r = offeredRows[i];
-                if (r && r.bookId != null) allIds.push(r.bookId);
+                const v = Number(offeredRows[i].bookId);
+                if (Number.isFinite(v)) allIds.push(v);
             }
 
             const uniqueBookIds = uniqueIntovi(allIds);
@@ -155,7 +235,7 @@ class ExchangeService {
             }, t);
 
             return true;
-        })
+        });
     }
 }
 

@@ -12,6 +12,33 @@ class SellerExchangesController {
         res.render("seller/exchanges/detail", { title: `Razmjena #${data.id}`, razmjena: data, error: null });
     }
 
+    async accept(req, res) {
+        try {
+            await sellerExchangesService.accept(req.session.user, req.params.id);
+            return res.redirect(`/seller/exchanges/${req.params.id}`);
+        } catch (e) {
+            return res.status(400).send(e.message);
+        }
+    }
+
+    async reject(req, res) {
+        try {
+            await sellerExchangesService.reject(req.session.user, req.params.id);
+            return res.redirect(`/seller/exchanges/${req.params.id}`);
+        } catch (e) {
+            return res.status(400).send(e.message);
+        }
+    }
+
+    async complete(req, res) {
+        try {
+            await sellerExchangesService.complete(req.session.user, req.params.id);
+            return res.redirect(`/seller/exchanges/${req.params.id}`);
+        } catch (e) {
+            return res.status(400).send(e.message);
+        }
+    }
+
     async changeStatus(req, res) {
         try {
             await sellerExchangesService.changeStatus(req.session.user, req.params.id, req.body.status);

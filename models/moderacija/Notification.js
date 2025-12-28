@@ -27,7 +27,8 @@ const Notification = sequelize.define(
             allowNull: false,
             field: "type",
             validate: {
-                isIn: [["Nova_narudzba",
+                isIn: [[
+                    "Nova_narudzba",
                     "Status_narudzbe",
                     "Nova_razmjena",
                     "Status_razmjene",

@@ -125,4 +125,12 @@ db.ExchangeRequestedBook.belongsTo(db.Book, {
     as: "book"
 });
 
+db.Book.hasMany(db.ExchangeRequestedBook, {
+    foreignKey: "bookId"
+});
+
+db.Book.hasMany(db.ExchangeOfferedBook, {
+    foreignKey: "bookId"
+});
+
 module.exports = db;

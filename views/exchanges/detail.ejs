@@ -1,32 +1,72 @@
 <h1><%= title %></h1>
 
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
-
-<p><strong>Status:</strong> <%= ex.status %></p>
-<p><strong>ProdavacID:</strong> <%= ex.prodavacId %></p>
-
-<h3>Tražene knjige</h3>
-<ul>
-  <% (ex.requested || []).forEach(x => { %>
-    <li>
-      <%= x.book ? (x.book.naziv + " — " + x.book.autor) : ("Book ID: " + x.bookId) %>
-    </li>
-  <% }) %>
-</ul>
-
-<h3>Ponuđene knjige</h3>
-<ul>
-  <% (ex.offered || []).forEach(x => { %>
-    <li>
-      <%= x.book ? (x.book.naziv + " — " + x.book.autor) : ("Book ID: " + x.bookId) %>
-    </li>
-  <% }) %>
-</ul>
-
-<% if (ex.status === "Na_cekanju" || ex.status === "Prihvacena") { %>
-  <form method="post" action="/exchanges/<%= ex.id %>/cancel" onsubmit="return confirm('Otkazati razmjenu?');">
-    <button type="submit">Otkaži</button>
-  </form>
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
 <% } %>
 
-<p><a href="/exchanges">Nazad</a></p>
+<p><strong>Status:</strong> <%= razmjena.status %></p>
+<p><strong>Kupac ID:</strong> <%= razmjena.kupacId %></p>
+
+<h3>Tražene knjige</h3>
+<% if (!razmjena.requested || razmjena.requested.length === 0) { %>
+  <p>Nema traženih knjiga.</p>
+<% } else { %>
+  <ul>
+    <% for (let i = 0; i < razmjena.requested.length; i++) { 
+         const r = razmjena.requested[i];
+         const b = r && r.book ? r.book : null;
+    %>
+      <li>
+        <% if (b) { %>
+          <%= b.naziv %> — <%= b.autor %> (ID: <%= b.id %>)
+        <% } else { %>
+          Book ID: <%= r.bookId %>
+        <% } %>
+      </li>
+    <% } %>
+  </ul>
+<% } %>
+
+<h3>Ponuđene knjige</h3>
+<% if (!razmjena.offered || razmjena.offered.length === 0) { %>
+  <p>Nema ponuđenih knjiga.</p>
+<% } else { %>
+  <ul>
+    <% for (let i = 0; i < razmjena.offered.length; i++) { 
+         const r = razmjena.offered[i];
+         const b = r && r.book ? r.book : null;
+    %>
+      <li>
+        <% if (b) { %>
+          <%= b.naziv %> — <%= b.autor %> (ID: <%= b.id %>)
+        <% } else { %>
+          Book ID: <%= r.bookId %>
+        <% } %>
+      </li>
+    <% } %>
+  </ul>
+<% } %>
+
+<hr />
+
+<h3>Promijeni status</h3>
+<form method="post" action="/seller/exchanges/<%= razmjena.id %>/status">
+  <select name="status">
+    <% 
+      var s1 = ""; if (razmjena.status === "Na_cekanju") s1 = "selected";
+      var s2 = ""; if (razmjena.status === "Prihvacena") s2 = "selected";
+      var s3 = ""; if (razmjena.status === "Odbijena") s3 = "selected";
+      var s4 = ""; if (razmjena.status === "Zavrsena") s4 = "selected";
+      var s5 = ""; if (razmjena.status === "Otkazana") s5 = "selected";
+    %>
+    <option value="Na_cekanju" <%= s1 %>>Na cekanju</option>
+    <option value="Prihvacena" <%= s2 %>>Prihvacena</option>
+    <option value="Odbijena" <%= s3 %>>Odbijena</option>
+    <option value="Zavrsena" <%= s4 %>>Zavrsena</option>
+    <option value="Otkazana" <%= s5 %>>Otkazana</option>
+  </select>
+
+  <button type="submit">Sačuvaj</button>
+</form>
+
+<p><a href="/seller/exchanges">Nazad</a></p>

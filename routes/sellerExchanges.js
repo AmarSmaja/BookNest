@@ -6,4 +6,8 @@ router.get("/exchanges", requireRoles(["Prodavac", "Admin"]), sellerExchangesCon
 router.get("/exchanges/:id", requireRoles(["Prodavac", "Admin"]), sellerExchangesController.detail);
 router.post("/exchanges/:id/status", requireRoles(["Prodavac", "Admin"]), sellerExchangesController.changeStatus);
 
+router.post("/exchanges/:id/accept", requireRoles(["Prodavac", "Admin"]), sellerExchangesController.accept);
+router.post("/exchanges/:id/reject", requireRoles(["Prodavac", "Admin"]), sellerExchangesController.reject);
+router.post("/exchanges/:id/complete", requireRoles(["Prodavac", "Admin"]), sellerExchangesController.complete);
+
 module.exports = router;

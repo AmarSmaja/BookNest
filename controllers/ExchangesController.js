@@ -12,20 +12,75 @@ class ExchangesController {
         res.render("exchanges/detail", { title: `Razmjena #${data.id}`, razmjena: data, error: null });
     }
 
-    async create(req, res) {
+    async showCreate(req, res) {
         try {
-            const requestedBookIds = Array.isArray(req.body.requestedBookIds)
-            ? req.body.requestedBookIds
-            : [req.body.requestedBookIds].filter(Boolean);
+            const data = await exchangeService.getCreateData(req.session.user, req.query.bookId);
 
-            const offeredBookIds = Array.isArray(req.body.offeredBookIds)
-            ? req.body.offeredBookIds
-            : [req.body.offeredBookIds].filter(Boolean);
-
-            const razmjena = await exchangeService.createExchangeFromBooks(req.session.user, requestedBookIds, offeredBookIds);
-            return res.redirect(`/exchanges/${razmjena.id}`);
+            return res.render("exchanges/new", {
+                title: "Predlozi razmjenu",
+                requestedBook: data.requestedBook,
+                myBooks: data.myBooks,
+                error: null,
+                values: {},
+            });
         } catch (e) {
             return res.status(400).send(e.message);
+        }
+    }
+
+    async create(req, res) {
+        try {
+            console.log("BODY: ", req.body);
+
+            const requestedRaw = req.body.requestedBookIds;
+            const offeredRaw = req.body.offeredBookIds || req.body["offeredBookIds[]"];
+
+            const requestedBookIds = [];
+            if (Array.isArray(requestedRaw)) {
+                for (const v of requestedRaw) {
+                    const n = Number(v);
+                    if (!isNaN(n)) requestedBookIds.push(n);
+                }
+            } else {
+                const n = Number(requestedRaw);
+                if (!isNaN(n)) requestedBookIds.push(n);
+            }
+
+            const offeredBookIds = [];
+            if (Array.isArray(offeredRaw)) {
+                for (const v of offeredRaw) {
+                    const n = Number(v);
+                    if (!isNaN(n)) offeredBookIds.push(n);
+                }
+            } else {
+                const n = Number(offeredRaw);
+                if (!isNaN(n)) offeredBookIds.push(n);
+            }
+
+            if (offeredBookIds.length === 0) {
+                throw new Error("Moras odabrati bar jednu knjigu koju nudis!");
+            }
+
+            const razmjena = await exchangeService.createExchangeFromBooks(
+                req.session.user,
+                requestedBookIds,
+                offeredBookIds
+            );
+
+            return res.redirect(`/exchanges/${razmjena.id}`);
+        } catch (e) {
+            try {
+                const data = await exchangeService.getCreateData(req.session.user, req.body.requestedBookIds);
+                return res.status(400).render("exchanges/new", {
+                    title: "Predlozi razmjenu",
+                    requestedBook: data.requestedBook,
+                    myBooks: data.myBooks,
+                    error: e.message,
+                    values: req.body,
+                });
+            } catch (e2) {
+                return res.status(400).send(e.message);
+            }
         }
     }
 

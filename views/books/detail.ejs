@@ -20,9 +20,14 @@
 <h3>Opis</h3>
 <p><%= knjiga.opis || "Nema opisa." %></p>
 
-<form method="post" action="/cart/add" style="margin-top: 12px;">
-  <input type="hidden" name="bookId" value="<%= knjiga.id %>"/>
-  <button type="submit">Dodaj u korpu</button>
-</form>
+<% if (canBuy) { %>
+  <form method="post" action="/cart/add" style="display:inline-block; margin-right:8px;">
+    <input type="hidden" name="bookId" value="<%= knjiga.id %>">
+    <button type="submit">Dodaj u korpu</button>
+  </form>
+<% } %>
 
+<% if (canExchange) { %>
+  <a href="/exchanges/new?bookId=<%= knjiga.id %>">Predloži razmjenu</a>
+<% } %>
 <p><a href="/">← Nazad</a></p>

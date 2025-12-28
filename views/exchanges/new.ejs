@@ -1,0 +1,32 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<p>
+  <strong>Tražena knjiga:</strong>
+  <%= requestedBook.naziv %> — <%= requestedBook.autor %>
+</p>
+
+<form method="post" action="/exchanges">
+  <input type="hidden" name="requestedBookIds" value="<%= requestedBook.id %>">
+
+  <h3>Odaberi svoje knjige koje nudiš</h3>
+
+  <% if (!myBooks || myBooks.length === 0) { %>
+    <p>Nemaš knjiga za ponuditi.</p>
+  <% } else { %>
+    <% myBooks.forEach(b => { %>
+      <label style="display:block; margin:6px 0;">
+        <input type="checkbox" name="offeredBookIds[]" value="<%= b.id %>">
+        <%= b.naziv %> — <%= b.autor %>
+      </label>
+    <% }) %>
+  <% } %>
+
+  <div style="margin-top:12px;">
+    <button type="submit">Pošalji zahtjev</button>
+    <a href="/books/<%= requestedBook.id %>">Nazad</a>
+  </div>
+</form>
