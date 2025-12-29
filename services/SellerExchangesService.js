@@ -38,16 +38,6 @@ function extractAllBookIds(detail) {
     return ids;
 }
 
-function dozvoljenPrijelaz(from, to) {
-    if (!DOPUSTENO.includes(to)) return false;
-    if (NEDOPUSTENO.includes(from)) return false;
-
-    if (from === "Na_cekanju" && (to === "Prihvacena" || to === "Odbijena")) return true;
-    if (from === "Prihvacena" && (to === "Zavrsena" || to === "Odbijena")) return true;
-
-    return false;
-}
-
 function uniqueIntovi(arr) {
     const s = new Set();
     for (const x of arr || []) {
@@ -196,56 +186,6 @@ class SellerExchangesService {
 
         return exchangeDao.getDetail(id);
     }
-
-    // async changeStatus(user, exchangeId, noviStatus) {
-    //    const id = Number(exchangeId);
-    //    if (!Number.isFinite(id)) throw new Error("Neispravan ID razmjene!");
-    //    if (!DOPUSTENO.includes(noviStatus)) throw new Error("Neispravan status razmjene!");
-
-    //    return db.sequelize.transaction(async (t) => {
-    //         const razmjena = await exchangeDao.findOwnedBySeller(id, user.id);
-    //         if (!razmjena) throw new Error("Razmjena nije pronadjena!");
-
-    //         if (!dozvoljenPrijelaz(razmjena.status, noviStatus)) {
-    //             throw new Error(`Nije dozvoljen prijelaz: ${razmjena.status} -> ${noviStatus}!`);
-    //         }
-
-    //         const detail = await exchangeDao.getDetail(id, t);
-    //         const allBookIds = extractAllBookIds(detail);
-
-    //         await exchangeDao.updateStatus(id, noviStatus, t);
-
-    //         await notificationDao.create({
-    //             userId: razmjena.kupacId,
-    //             tip: "Status_razmjene",
-    //             payloadJson: { exchangeId: razmjena.id, status: noviStatus },
-    //         }, t);
-
-    //         if (noviStatus === "Odbijena") {
-    //             await exchangeDao.oznaciZavrseno(id, t);
-
-    //             if (allBookIds.length > 0) {
-    //                 await db.Book.update(
-    //                     { status: "Aktivna" },
-    //                     { where: { id: allBookIds }, transaction: t }
-    //                 );
-    //             }
-    //         }
-
-    //         if (noviStatus === "Zavrsena") {
-    //             await exchangeDao.oznaciZavrseno(id, t);
-
-    //             if (allBookIds.length > 0) {
-    //                 await db.Book.update(
-    //                     { status: "Prodana/Razmjenjena" },
-    //                     { where: { id: allBookIds }, transaction: t }
-    //                 );
-    //             }
-    //         }
-
-    //         return true;
-    //    });
-    // }
 
     async changeStatus(user, exchangeId, noviStatus) {
         const id = Number(exchangeId);
