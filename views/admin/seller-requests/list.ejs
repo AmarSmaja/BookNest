@@ -4,31 +4,46 @@
   <p style="color:red"><%= error %></p>
 <% } %>
 
-<% if (!zahtjevi || zahtjevi.length === 0) { %>
+<% if (!rows || rows.length === 0) { %>
   <p>Nema zahtjeva na cekanju.</p>
 <% } else { %>
   <table border="1" cellpadding="6">
     <thead>
       <tr>
         <th>User ID</th>
+        <th>Korisnik</th>
         <th>Status</th>
-        <th>Requested</th>
-        <th>Akcija</th>
+        <th>Requested At</th>
+        <th>Akcije</th>
       </tr>
     </thead>
     <tbody>
-      <% for (let i = 0; i < zahtjevi.length; i++) { %>
-        <% const r = zahtjevi[i]; %>
+      <% for (let i = 0; i < rows.length; i++) { %>
+        <% const p = rows[i].profile; %>
+        <% const u = rows[i].user; %>
+
         <tr>
-          <td><%= r.userId %></td>
-          <td><%= r.status %></td>
-          <td><%= r.requestedAt ? r.requestedAt : '-' %></td>
+          <td><%= p.userId %></td>
+
           <td>
-            <form method="post" action="/admin/seller-requests/<%= r.userId %>/approve" style="display:inline-block; margin-right:8px;">
+            <% if (u) { %>
+              <% if (u.ime) { %><%= u.ime %><% } %>
+              <% if (u.prezime) { %> <%= u.prezime %><% } %>
+              <% if (u.mail) { %> — <%= u.mail %><% } %>
+            <% } else { %>
+              (user nije pronadjen)
+            <% } %>
+          </td>
+
+          <td><%= p.status %></td>
+          <td><%= p.requestedAt ? p.requestedAt : "-" %></td>
+
+          <td>
+            <form method="post" action="/admin/seller-requests/<%= p.userId %>/approve" style="display:inline-block">
               <button type="submit">Odobri</button>
             </form>
 
-            <form method="post" action="/admin/seller-requests/<%= r.userId %>/reject" style="display:inline-block;">
+            <form method="post" action="/admin/seller-requests/<%= p.userId %>/reject" style="display:inline-block; margin-left:6px">
               <button type="submit">Odbij</button>
             </form>
           </td>
@@ -37,3 +52,5 @@
     </tbody>
   </table>
 <% } %>
+
+<p><a href="/">Nazad</a></p>

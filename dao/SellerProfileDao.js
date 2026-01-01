@@ -1,23 +1,14 @@
 const db = require("../models");
 
 class SellerProfileDao {
-    findByUserId(userId) {
-        return db.SellerProfile.findOne({ where: { userId: userId } });
+    findByUserId(userId, t) {
+        const opts = {};
+        if (t) opts.transaction = t;
+        return db.SellerProfile.findByPk(userId, opts);
     }
 
     create(data, t) {
         return db.SellerProfile.create(data, { transaction: t });
-    }
-
-    findPending() {
-        return db.SellerProfile.findAll({
-            where: { status: "PENDING" },
-            order: [["id", "ASC"]],
-        });
-    }
-
-    findById(id) {
-        return db.SellerProfile.findByPk(id);
     }
 
     updateStatus(userId, status, reviewedAt, t) {
@@ -25,6 +16,17 @@ class SellerProfileDao {
             { status: status, reviewedAt: reviewedAt },
             { where: { userId: userId }, transaction: t }
         );
+    }
+
+    listPending(t) {
+        const opts = {
+            where: { status: "PENDING" },
+            order: [["requestedAt", "ASC"]],
+        };
+
+        if (t) opts.transaction = t;
+
+        return db.SellerProfile.findAll(opts);
     }
 }
 
