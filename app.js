@@ -42,6 +42,9 @@ app.use("/notifications", require("./routes/notifications"));
 app.use("/exchanges", require("./routes/exchanges"));
 app.use("/seller", require("./routes/sellerExchanges"));
 
+app.use("/seller", require("./routes/sellerApproving"));
+app.use("/admin", require("./routes/adminSellerRequests"));
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

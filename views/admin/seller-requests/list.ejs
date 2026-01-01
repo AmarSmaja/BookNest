@@ -1,0 +1,39 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (!zahtjevi || zahtjevi.length === 0) { %>
+  <p>Nema zahtjeva na cekanju.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Status</th>
+        <th>Requested</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let i = 0; i < zahtjevi.length; i++) { %>
+        <% const r = zahtjevi[i]; %>
+        <tr>
+          <td><%= r.userId %></td>
+          <td><%= r.status %></td>
+          <td><%= r.requestedAt ? r.requestedAt : '-' %></td>
+          <td>
+            <form method="post" action="/admin/seller-requests/<%= r.userId %>/approve" style="display:inline-block; margin-right:8px;">
+              <button type="submit">Odobri</button>
+            </form>
+
+            <form method="post" action="/admin/seller-requests/<%= r.userId %>/reject" style="display:inline-block;">
+              <button type="submit">Odbij</button>
+            </form>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+<% } %>

@@ -1,0 +1,19 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<form method="post" action="/seller/apply">
+  <div style="margin:10px 0;">
+    <label>Grad (cityId):</label>
+    <input type="number" name="cityId" />
+  </div>
+
+  <div style="margin:10px 0;">
+    <label>Profilna slika URL:</label>
+    <input type="text" name="profileImageUrl" />
+  </div>
+
+  <button type="submit">Pošalji zahtjev</button>
+</form>

@@ -33,6 +33,25 @@ const SellerProfile = sequelize.define(
             type: DataTypes.STRING(1000),
             allowNull: true,
         },
+
+        status: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            defaultValue: "PENDING",
+        },
+
+        requestedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            field: "requested_at",
+            defaultValue: DataTypes.NOW,
+        },
+
+        reviewedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            field: "reviewed_at",
+        },
     },
 
     {
