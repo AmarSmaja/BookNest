@@ -10,6 +10,11 @@ class NotificationsController {
         await notificationDao.oznaciProcitano(req.params.id, req.session.user.id);
         return res.redirect("/notifications");
     }
+
+    async oznaciSveProcitano(req, res) {
+        await notificationDao.oznaciSveProcitano(req.session.user.id);
+        return res.redirect("/notifications");
+    }
 }
 
 module.exports = new NotificationsController();

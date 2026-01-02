@@ -6,32 +6,28 @@ class SellerApprovingService {
     async podnesiZahtjev(user, formData) {
         if (!user) throw new Error("Nisi logovan!");
 
-        const postoji = await sellerProfileDao.findByUserId(user.id);
+        const postoji = await sellerProfileDao.findByUserId(user.id, null);
         if (postoji) {
-            if (postoji.status === "PENDING") {
-                throw new Error("Tvoj zahtjev je vec poslan i ceka odobrenje admina!");
-            }
-            if (postoji.status === "APPROVED") {
-                throw new Error("Vec si odobren kao prodavac!")
-            }
-            throw new Error("Tvoj zahtjev je odbijen. Kontaktiraj admina!");
+            if (postoji.status === "PENDING") throw new Error("Tvoj zahtjev je vec poslan i ceka odobrenje admina!");
+            if (postoji.status === "APPROVED") throw new Error("Vec si odobren kao prodavac!");
+            throw new Error("Tvoj zahtjev je odbijen. Kontakiraj admina!");
         }
 
         let cityId = null;
         let profileImageUrl = null;
 
         if (formData) {
-            if (formData.cityId !== null && formData.cityId !== undefined && formData.cityId !== "") {
+            if (formData.cityId !== null && formData.cityId !== "") {
                 const parsirano = Number(formData.cityId);
                 if (Number.isFinite(parsirano)) {
                     cityId = parsirano;
                 }
-            }
 
-            if (formData.profileImageUrl !== null && formData.profileImageUrl !== undefined) {
-                const s = String(formData.profileImageUrl).trim();
-                if (s.length > 0) {
-                    profileImageUrl = s;
+                if (formData.profileImageUrl != null) {
+                    const s = String(formData.profileImageUrl).trim();
+                    if (s.length > 0) {
+                        profileImageUrl = s;
+                    }
                 }
             }
         }
@@ -43,7 +39,7 @@ class SellerApprovingService {
                 profileImageUrl: profileImageUrl,
                 status: "PENDING",
                 requestedAt: new Date(),
-                reviewedAt: null
+                reviewedAt: null,
             }, t);
 
             const admini = await db.User.findAll({
@@ -65,36 +61,68 @@ class SellerApprovingService {
             }
 
             return profil;
-        })
+        });
     }
 
     async listPending(adminUser) {
         if (!adminUser || adminUser.role !== "Admin") throw new Error("Nemate pristup!");
-        return sellerProfileDao.listPending();
+
+        const profili = await sellerProfileDao.listPending(null);
+
+        const userIds = [];
+        const seen = new Set();
+
+        for (let i = 0; i < profili.length; i++) {
+            const uid = Number(profili[i].userId);
+            if (Number.isFinite(uid) && !seen.has(uid)) {
+                seen.add(uid);
+                userIds.push(uid);
+            }
+        }
+
+        const useri = await db.User.findAll({
+            where: { id: userIds },
+            attributes: ["id", "ime", "prezime", "email", "role"],
+            raw: true,
+        });
+
+        const byId = [];
+        for (let i = 0; i < useri.length; i++) {
+            byId[useri[i].id] = useri[i];
+        }
+
+        const rows = [];
+        for (let i = 0; i < profili.length; i++) {
+            const p = profili[i];
+            const uid = Number(p.UserId);
+            rows.push({ profile: p, user: byId[uid] || null });
+        }
+
+        return rows;
     }
 
     async odobri(adminUser, sellerUserId) {
         if (!adminUser || adminUser.role !== "Admin") throw new Error("Nemate pristup!");
 
-        const pid = Number(sellerUserId);
-        if (!Number.isFinite(pid)) throw new Error("Neispravan ID!");
+        const uid = Number(sellerUserId);
+        if (!Number.isFinite(uid)) throw new Error("Neispravan ID!");
 
         return db.sequelize.transaction(async (t) => {
-            const profil = await db.SellerProfile.findByPk(pid, { transaction: t });
+            const profil = await sellerProfileDao.findByUserId(uid, t);
             if (!profil) throw new Error("Zahtjev nije pronadjen!");
             if (profil.status !== "PENDING") throw new Error("Zahtjev vise nije na cekanju!");
 
-            await sellerProfileDao.updateStatus(pid, "APPROVED", new Date(), t);
+            await sellerProfileDao.updateStatus(uid, "APPROVED", new Date(), t);
 
             await db.User.update(
                 { role: "Prodavac" },
-                { where: { id: pid }, transaction: t }
+                { where: { id: uid }, transaction: t }
             );
 
             await notificationDao.create({
-                userId: pid,
+                userId: uid,
                 tip: "Prodavac_odobren",
-                payloadJson: { sellerUserId: pid },
+                payloadJson: { sellerUserId: uid },
             }, t);
 
             return true;
@@ -104,24 +132,24 @@ class SellerApprovingService {
     async odbij(adminUser, sellerUserId) {
         if (!adminUser || adminUser.role !== "Admin") throw new Error("Nemate pristup!");
 
-        const pid = Number(sellerUserId);
-        if (!Number.isFinite(pid)) throw new Error("Neispravan ID!");
+        const uid = Number(sellerUserId);
+        if (!Number.isFinite(uid)) throw new Error("Neispravan ID!");
 
         return db.sequelize.transaction(async (t) => {
-            const profil = await db.SellerProfile.findByPk(pid, { transaction: t });
+            const profil = await sellerProfileDao.findByUserId(uid, t);
             if (!profil) throw new Error("Zahtjev nije pronadjen!");
             if (profil.status !== "PENDING") throw new Error("Zahtjev vise nije na cekanju!");
 
-            await sellerProfileDao.updateStatus(pid, "REJECTED", new Date(), t);
+            await sellerProfileDao.updateStatus(uid, "REJECTED", new Date(), t);
 
             await notificationDao.create({
-                userId: pid,
+                userId: uid,
                 tip: "Prodavac_odbijen",
-                payloadJson: { sellerUserId: pid },
+                payloadJson: { sellerUserId: uid },
             }, t);
 
             return true;
-        });
+        })
     }
 }
 

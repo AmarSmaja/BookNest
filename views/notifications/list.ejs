@@ -1,10 +1,19 @@
 <h1><%= title %></h1>
 
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<form method="post" action="/notifications/read-all" style="margin-bottom:12px;">
+  <button type="submit">Označi sve kao pročitano</button>
+</form>
 
 <% if (!notifikacije || notifikacije.length === 0) { %>
   <p>Nema notifikacija.</p>
 <% } else { %>
+  <form method="post" action="/notifications/read-all" style="margin-bottom:12px;">
+    <button type="submit">Označi sve kao pročitano</button>
+  </form>
   <table border="1" cellpadding="6">
     <thead>
       <tr>
@@ -12,25 +21,36 @@
         <th>Tip</th>
         <th>Pročitano</th>
         <th>Payload</th>
-        <th>Akcija</th>
+        <th>Akcije</th>
       </tr>
     </thead>
     <tbody>
-      <% notifikacije.forEach(n => { %>
+      <% for (let i = 0; i < notifikacije.length; i++) { %>
+        <% const n = notifikacije[i]; %>
         <tr>
           <td><%= n.id %></td>
           <td><%= n.tip %></td>
-          <td><%= n.isRead ? "DA" : "NE" %></td>
-          <td><pre><%= JSON.stringify(n.payloadJson, null, 2) %></pre></td>
+          <td><%= n.isRead %></td>
+          <td>
+            <% if (n.payloadJson) { %>
+              <pre style="margin:0;"><%= JSON.stringify(n.payloadJson, null, 2) %></pre>
+            <% } else { %>
+              -
+            <% } %>
+          </td>
           <td>
             <% if (!n.isRead) { %>
-              <form method="post" action="/notifications/<%= n.id %>/read">
+              <form method="post" action="/notifications/<%= n.id %>/read" style="display:inline-block;">
                 <button type="submit">Označi pročitano</button>
               </form>
+            <% } else { %>
+              -
             <% } %>
           </td>
         </tr>
-      <% }) %>
+      <% } %>
     </tbody>
   </table>
 <% } %>
+
+<p><a href="/">Nazad</a></p>
