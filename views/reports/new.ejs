@@ -1,0 +1,28 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (!targetBook) { %>
+  <p>Knjiga nije pronađena.</p>
+  <p><a href="/">Nazad</a></p>
+<% } else { %>
+
+  <p><strong>Prijavljuješ knjigu:</strong> <%= targetBook.naziv %> — <%= targetBook.autor %></p>
+
+  <form method="post" action="/reports">
+    <input type="hidden" name="bookId" value="<%= targetBook.id %>">
+
+    <div style="margin-top:12px;">
+      <label>Razlog:</label><br/>
+      <textarea name="razlog" rows="6" cols="60"><%= values && values.razlog ? values.razlog : "" %></textarea>
+    </div>
+
+    <div style="margin-top:12px;">
+      <button type="submit">Pošalji prijavu</button>
+      <a href="/books/<%= targetBook.id %>">Nazad</a>
+    </div>
+  </form>
+
+<% } %>

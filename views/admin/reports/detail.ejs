@@ -32,10 +32,23 @@
 <h3>Promijeni status</h3>
 <form method="post" action="/admin/reports/<%= report.id %>/status">
   <select name="status">
-    <option value="U_obradi" <%= report.status === "U_obradi" ? "selected" : "" %>>U_obradi</option>
-    <option value="Rijesen" <%= report.status === "Rijesen" ? "selected" : "" %>>Rijesen</option>
-    <option value="Odbijen" <%= report.status === "Odbijen" ? "selected" : "" %>>Odbijen</option>
+    <option value="Otvoren"
+      <% if (report.status === "Otvoren") { %>selected<% } %>
+    >Otvoren</option>
+
+    <option value="U_obradi"
+      <% if (report.status === "U_obradi") { %>selected<% } %>
+    >U_obradi</option>
+
+    <option value="Rijesen"
+      <% if (report.status === "Rijesen") { %>selected<% } %>
+    >Rijesen</option>
+
+    <option value="Odbijen"
+      <% if (report.status === "Odbijen") { %>selected<% } %>
+    >Odbijen</option>
   </select>
+
   <button type="submit">Sačuvaj</button>
 </form>
 

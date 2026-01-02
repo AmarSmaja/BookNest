@@ -10,6 +10,14 @@ class BooksController {
 
         let canBuy = false;
         let canExchange = false;
+        let canReport = false;
+
+        if (req.session && req.session.user) {
+            const u = req.session.user;
+            if (u.id !== knjiga.prodavacId) {
+                canReport = true;
+            }
+        }
 
         if (req.session && req.session.user) {
             const u = req.session.user;
@@ -31,6 +39,7 @@ class BooksController {
             knjiga,
             canBuy,
             canExchange,
+            canReport,
             error: null,
         });
     }

@@ -30,4 +30,11 @@
 <% if (canExchange) { %>
   <a href="/exchanges/new?bookId=<%= knjiga.id %>">Predloži razmjenu</a>
 <% } %>
+
+<% if (canReport) { %>
+  <p style="margin-top:12px;">
+    <a href="/reports/new?bookId=<%= knjiga.id %>">Prijavi ovu knjigu / prodavača</a>
+  </p>
+<% } %>
+
 <p><a href="/">← Nazad</a></p>
