@@ -1,0 +1,48 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (!reports || reports.length === 0) { %>
+  <p>Nema otvorenih reportova.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Razlog</th>
+        <th>Reporter</th>
+        <th>Target</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let i = 0; i < reports.length; i++) { %>
+        <% const r = reports[i]; %>
+        <tr>
+          <td><%= r.id %></td>
+          <td><%= r.status %></td>
+          <td><%= r.razlog %></td>
+          <td><%= r.prijavioId %></td>
+          <td>
+            <% if (r.prijavljeniUserId) { %>
+              User: <%= r.prijavljeniUserId %>
+            <% } %>
+            <% if (r.prijavljenaKnjigaId) { %>
+              <% if (r.prijavljeniUserId) { %> | <% } %>
+              Book: <%= r.prijavljenaKnjigaId %>
+            <% } %>
+            <% if (!r.prijavljeniUserId && !r.prijavljenaKnjigaId) { %>
+              -
+            <% } %>
+          </td>
+          <td><a href="/admin/reports/<%= r.id %>">Detalji</a></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+<% } %>
+
+<p><a href="/admin">Nazad</a></p>

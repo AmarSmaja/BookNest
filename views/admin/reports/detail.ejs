@@ -1,0 +1,42 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<p><strong>ID:</strong> <%= report.id %></p>
+<p><strong>Status:</strong> <%= report.status %></p>
+<p><strong>Reporter ID:</strong> <%= report.prijavioId %></p>
+
+<p><strong>Target user:</strong>
+  <% if (report.prijavljeniUserId) { %>
+    <%= report.prijavljeniUserId %>
+  <% } else { %>
+    -
+  <% } %>
+</p>
+
+<p><strong>Target book:</strong>
+  <% if (report.prijavljenaKnjigaId) { %>
+    <%= report.prijavljenaKnjigaId %>
+  <% } else { %>
+    -
+  <% } %>
+</p>
+
+<p><strong>Razlog:</strong></p>
+<pre style="white-space:pre-wrap;"><%= report.razlog %></pre>
+
+<hr/>
+
+<h3>Promijeni status</h3>
+<form method="post" action="/admin/reports/<%= report.id %>/status">
+  <select name="status">
+    <option value="U_obradi" <%= report.status === "U_obradi" ? "selected" : "" %>>U_obradi</option>
+    <option value="Rijesen" <%= report.status === "Rijesen" ? "selected" : "" %>>Rijesen</option>
+    <option value="Odbijen" <%= report.status === "Odbijen" ? "selected" : "" %>>Odbijen</option>
+  </select>
+  <button type="submit">Sačuvaj</button>
+</form>
+
+<p><a href="/admin/reports">Nazad</a></p>

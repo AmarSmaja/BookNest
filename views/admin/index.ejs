@@ -1,0 +1,23 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<h3>Pregled</h3>
+<ul>
+  <li>Zahtjevi za prodavača (PENDING): <%= overview.pendingSeller %></li>
+  <li>Otvoreni reportovi: <%= overview.openReports %></li>
+  <li>Ukupno korisnika: <%= overview.totalUsers %></li>
+  <li>Ukupno knjiga: <%= overview.totalBooks %></li>
+</ul>
+
+<hr/>
+
+<h3>Moduli</h3>
+<ul>
+  <li><a href="/admin/seller-requests">Zahtjevi za prodavača</a></li>
+  <li><a href="/admin/reports">Reportovi</a></li>
+</ul>
+
+<p><a href="/">Nazad na aplikaciju</a></p>

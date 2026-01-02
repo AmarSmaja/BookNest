@@ -1,9 +1,9 @@
 const router = require("express").Router();
-const adminSellersController = require("../controllers/AdminSellersController");
-const { requireAuth } = require("../middlewares/auth");
+const adminSellersController = require('../controllers/AdminSellersController');
+const { requireRole } = require("../middlewares/auth");
 
-router.get("/seller-requests", requireAuth, adminSellersController.list);
-router.post("/seller-requests/:userId/approve", requireAuth, adminSellersController.approve);
-router.post("/seller-requests/:userId/reject", requireAuth, adminSellersController.reject);
+router.get("/", requireRole("Admin"), adminSellersController.list);
+router.post("/:userId/approve", requireRole("Admin"), adminSellersController.approve);
+router.post("/:userId/reject", requireRole("Admin"), adminSellersController.reject);
 
 module.exports = router;
