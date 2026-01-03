@@ -37,4 +37,22 @@
   </p>
 <% } %>
 
+<hr />
+<h3>Ocijeni knjigu</h3>
+
+<form method="post" action="/book-ratings">
+  <input type="hidden" name="bookId" value="<%= knjiga.id %>" />
+
+  <select name="ocjena">
+    <option value="5">5</option>
+    <option value="4">4</option>
+    <option value="3">3</option>
+    <option value="2">2</option>
+    <option value="1">1</option>
+  </select>
+
+  <button type="submit">Pošalji ocjenu</button>
+</form>
+
+
 <p><a href="/">← Nazad</a></p>

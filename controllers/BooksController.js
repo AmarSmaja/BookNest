@@ -1,3 +1,4 @@
+const db = require("../models");
 const bookService = require("../services/BookService");
 
 class BooksController {
@@ -7,6 +8,29 @@ class BooksController {
 
         const knjiga = await bookService.getBookDetail(id);
         if (!knjiga) return res.status(404).send("Nije pronadjeno!");
+
+        let vidljivo = true;
+        if (knjiga.status !== "Aktivna") {
+            vidljivo = false;
+
+            if (req.session && req.session.user) {
+                const u = req.session.user;
+
+                if (u.role === "Admin") vidljivo = true;
+                if (u.id === knjiga.prodavacId) vidljivo = true;
+
+                if (!vidljivo) {
+                    const orderItem = await db.OrderItem.findOne({
+                        where: { bookId: knjiga.id },
+                        include: [{ model: db.Order, required: true, where: { kupacId: u.id, status: "Zavrsena" } }],
+                    });
+
+                    if (orderItem) vidljivo = true;
+                }
+            }
+        }
+
+        if (!vidljivo) return res.status(403).send("Nemate pristup ovoj knjizi!");
 
         if (knjiga.status === "Arhivirana") {
             if (!req.session || !req.session.user || req.session.user.role !== "Admin") {

@@ -1,0 +1,32 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<p>
+  <strong>Knjiga:</strong>
+  <% if (knjiga) { %>
+    <%= knjiga.naziv %> — <%= knjiga.autor %>
+  <% } else { %>
+    ID: <%= bookId %>
+  <% } %>
+</p>
+
+<form method="post" action="/ratings">
+  <input type="hidden" name="orderId" value="<%= orderId %>">
+  <input type="hidden" name="bookId" value="<%= bookId %>">
+
+  <label>Ocjena:</label>
+  <select name="ocjena">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5" selected>5</option>
+  </select>
+
+  <button type="submit">Sačuvaj</button>
+</form>
+
+<p><a href="/orders/<%= orderId %>">Nazad</a></p>
