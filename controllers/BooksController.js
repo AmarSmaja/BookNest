@@ -8,6 +8,12 @@ class BooksController {
         const knjiga = await bookService.getBookDetail(id);
         if (!knjiga) return res.status(404).send("Nije pronadjeno!");
 
+        if (knjiga.status === "Arhivirana") {
+            if (!req.session || !req.session.user || req.session.user.role !== "Admin") {
+                return res.status(404).send("Nije pronadjeno!");
+            }
+        }
+
         let canBuy = false;
         let canExchange = false;
         let canReport = false;

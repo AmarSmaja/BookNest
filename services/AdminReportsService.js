@@ -51,7 +51,20 @@ class AdminReportsService {
         const id = Number(reportId);
         if (!Number.isFinite(id)) return null;
 
-        return db.Report.findByPk(id);
+        const report = await db.Report.findByPk(id);
+        if (!report) return null;
+
+        let targetBook = null;
+        if (report.prijavljenaKnjigaId != null) {
+            targetBook = await db.Book.findByPk(report.prijavljenaKnjigaId);
+        }
+
+        let targetUser = null;
+        if (report.prijavljeniUserId != null) {
+            targetUser = await db.User.findByPk(report.prijavljeniUserId);
+        }
+
+        return { report: report, targetBook: targetBook, targetUser: targetUser };
     }
 
     async changeStatus(adminUser, reportId, noviStatus) {
@@ -95,6 +108,54 @@ class AdminReportsService {
                     payloadJson: { reportId: id, status: status },
                 }, t);
             }
+
+            return true;
+        });
+    }
+
+    async arhivirajKnjigu(adminUser, reportId) {
+        if (!adminUser || adminUser.role !== "Admin") throw new Error("Nemate pristup!");
+
+        const id = Number(reportId);
+        if (!Number.isFinite(id)) throw new Error("Neispravan ID reporta!");
+
+        return db.sequelize.transaction(async (t) => {
+            const report = await db.Report.findByPk(id, { transaction: t });
+            if (!report) throw new Error("Report nije pronadjen!");
+
+            if (report.prijavljenaKnjigaId == null) throw new Error("Ovaj report nema target knjigu!");
+
+            const book = await db.Book.findByPk(report.prijavljenaKnjigaId, { transaction: t });
+            if (!book) throw new Error("Knjiga nije pronadjena!");
+
+            await db.Book.update(
+                { status: "Arhivirana" },
+                { where: { id: book.id }, transaction: t }
+            );
+
+            return true;
+        });
+    }
+
+    async aktivirajKnjigu(adminUser, reportId) {
+        if (!adminUser || adminUser.role !== "Admin") throw new Error("Nemate pristup!");
+
+        const id = Number(reportId);
+        if (!Number.isFinite(id)) throw new Error("Neispravan ID reporta!");
+
+        return db.sequelize.transaction(async (t) => {
+            const report = await db.Report.findByPk(id, { transaction: t });
+            if (!report) throw new Error("Report nije pronadjen!");
+
+            if (report.prijavljenaKnjigaId == null) throw new Error("Ovaj report nema target knjigu!");
+
+            const book = await db.Book.findByPk(report.prijavljenaKnjigaId, { transaction: t });
+            if (!book) throw new Error("Knjiga nije pronadjena!");
+
+            await db.Book.update(
+                { status: "Aktivna" },
+                { where: { id: book.id }, transaction: t }
+            );
 
             return true;
         });

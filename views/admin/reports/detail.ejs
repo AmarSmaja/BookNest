@@ -29,26 +29,34 @@
 
 <hr/>
 
-<h3>Promijeni status</h3>
+<h3>Akcije (knjiga)</h3>
+
+<% if (targetBook) { %>
+  <p>
+    <strong>Knjiga:</strong> <%= targetBook.naziv %> — <%= targetBook.autor %><br/>
+    <strong>Trenutni status:</strong> <%= targetBook.status %>
+  </p>
+
+  <form method="post" action="/admin/reports/<%= report.id %>/book/archive" style="display:inline-block">
+    <button type="submit" onclick="return confirm('Arhivirati knjigu?');">Arhiviraj</button>
+  </form>
+
+  <form method="post" action="/admin/reports/<%= report.id %>/book/activate" style="display:inline-block; margin-left:6px">
+    <button type="submit" onclick="return confirm('Vratiti knjigu na Aktivna?');">Aktiviraj</button>
+  </form>
+<% } else { %>
+  <p>Nema target knjige u ovom reportu.</p>
+<% } %>
+
+<hr/>
+
+<h3>Promijeni status reporta</h3>
 <form method="post" action="/admin/reports/<%= report.id %>/status">
   <select name="status">
-    <option value="Otvoren"
-      <% if (report.status === "Otvoren") { %>selected<% } %>
-    >Otvoren</option>
-
-    <option value="U_obradi"
-      <% if (report.status === "U_obradi") { %>selected<% } %>
-    >U_obradi</option>
-
-    <option value="Rijesen"
-      <% if (report.status === "Rijesen") { %>selected<% } %>
-    >Rijesen</option>
-
-    <option value="Odbijen"
-      <% if (report.status === "Odbijen") { %>selected<% } %>
-    >Odbijen</option>
+    <option value="U_obradi" <% if (report.status === "U_obradi") { %>selected<% } %>>U_obradi</option>
+    <option value="Rijesen" <% if (report.status === "Rijesen") { %>selected<% } %>>Rijesen</option>
+    <option value="Odbijen" <% if (report.status === "Odbijen") { %>selected<% } %>>Odbijen</option>
   </select>
-
   <button type="submit">Sačuvaj</button>
 </form>
 
