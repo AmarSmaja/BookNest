@@ -10,6 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 require("dotenv").config();
 
 const { attachUser } = require("./middlewares/auth");
+const { banGuard } = require("./middlewares/banGuard");
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -31,6 +32,7 @@ app.use(session({
 }))
 
 app.use(attachUser);
+app.use(banGuard);
 
 app.use('/', require("./routes/index"));
 app.use("/books", require("./routes/books"));

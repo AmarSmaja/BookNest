@@ -1,0 +1,13 @@
+<h1><%= title %></h1>
+
+<p>Vaš nalog je blokiran.</p>
+
+<% if (until) { %>
+  <p>Blokada traje do: <%= new Date(until).toLocaleString() %></p>
+<% } else { %>
+  <p>Blokada je trajna.</p>
+<% } %>
+
+<form method="post" action="/auth/logout">
+  <button type="submit">Logout</button>
+</form>
