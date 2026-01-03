@@ -1,36 +1,29 @@
 const db = require("../models");
 
 async function banGuard(req, res, next) {
-    if (req.path.startsWith("/auth")) return next();
+    if (req.path && req.path.startsWith("/auth")) return next();
 
-    let u = null;
-    if (req.session && req.session.user) {
-        u = req.session.user;
-    }
+    if (!req.session) return next();
+    if (!req.session.user) return next();
+    if (req.session.user.id == null) return next();
 
-    if (!u) return next();
+    const userId = Number(req.session.user.id);
+    if (!Number.isFinite(userId)) return next();
 
-    const user = await db.User.findByPk(u.id);
-    if (!user) {
-        return res.redirect("/auth/login");
-    }
-
-    req.session.user.status = user.status;
-    req.session.user.blokiranDo = user.blokiranDo;
+    const user = await db.User.findByPk(userId);
+    if (!user) return res.redirect("/auth/login");
 
     if (user.status !== "Blokiran") return next();
 
     if (user.blokiranDo) {
         const sad = new Date();
         const preostalo = new Date(user.blokiranDo);
+
         if (preostalo <= sad) {
             await db.User.update(
                 { status: "Aktivan", blokiranDo: null },
                 { where: { id: user.id } }
             );
-
-            req.session.user.status = "Aktivan";
-            req.session.user.blokiranDo = null;
             return next();
         }
     }
