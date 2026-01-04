@@ -133,4 +133,29 @@ db.Book.hasMany(db.ExchangeOfferedBook, {
     foreignKey: "bookId"
 });
 
+db.BookComment.belongsTo(db.User, {
+    foreignKey: "kupacId",
+    as: "kupac",
+});
+
+db.BookComment.belongsTo(db.Book, {
+    foreignKey: "bookId",
+    as: "knjiga",
+});
+
+db.BookComment.belongsTo(db.Order, {
+    foreignKey: "orderId",
+    as: "narudzba",
+});
+
+db.Book.hasMany(db.BookComment, {
+    foreignKey: "bookId",
+    as: "komentari",
+});
+
+db.User.hasMany(db.BookComment, {
+    foreignKey: "kupacId",
+    as: "mojiKomentari",
+});
+
 module.exports = db;

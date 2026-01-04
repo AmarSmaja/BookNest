@@ -17,7 +17,7 @@
 <p><strong>Prodavač:</strong> <%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %></p>
 
 <hr />
-<h3>Opis</h3>
+<h3>Opis</h3> 
 <p><%= knjiga.opis || "Nema opisa." %></p>
 
 <% if (canBuy) { %>
@@ -53,6 +53,76 @@
 
   <button type="submit">Pošalji ocjenu</button>
 </form>
+
+<hr />
+<h3>Komentari</h3>
+
+<% if (!komentari || komentari.length === 0) { %>
+  <p>Nema komentara.</p>
+<% } else { %>
+  <% for (let i = 0; i < komentari.length; i++) { %>
+    <% const c = komentari[i]; %>
+    <div style="border:1px solid #ddd; padding:10px; margin:10px 0;">
+      <p style="margin:0;">
+        <strong>
+          <% if (c.kupac) { %>
+            <%= c.kupac.ime %> <%= c.kupac.prezime %>
+          <% } else { %>
+            Kupac ID: <%= c.kupacId %>
+          <% } %>
+        </strong>
+        <% if (c.createdAt) { %>
+          — <%= new Date(c.createdAt).toLocaleString() %>
+        <% } %>
+      </p>
+
+      <% if (c.uredjenAt) { %>
+        <p style="margin:4px 0; font-size:12px;">(Uređeno: <%= new Date(c.uredjenAt).toLocaleString() %>)</p>
+      <% } %>
+
+      <pre style="white-space:pre-wrap; margin:8px 0 0 0;"><%= c.sadrzaj %></pre>
+
+      <%
+      let mozeBrisati = false;
+
+      if (isAdmin) {
+        mozeBrisati = true;
+      }
+
+      %>
+
+
+      <% if (mozeBrisati) { %>
+      <form method="post" action="/comments/<%= c.id %>/delete" style="margin-top:8px;">
+        <input type="hidden" name="returnTo" value="book">
+        <input type="hidden" name="bookId" value="<%= knjiga.id %>">
+        <button type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
+      </form>
+      <% } %>
+
+      <%
+  let mozeBrisatiOvaj = false;
+
+  if (isAdmin) {
+    mozeBrisatiOvaj = true;
+  } else {
+    if (currentUser && c && c.kupacId === currentUser.id) {
+      mozeBrisatiOvaj = true;
+    }
+  }
+%>
+
+<% if (mozeBrisatiOvaj) { %>
+  <form method="post" action="/comments/<%= c.id %>/delete" style="display:inline-block">
+    <input type="hidden" name="returnTo" value="book">
+    <input type="hidden" name="bookId" value="<%= knjiga.id %>">
+    <button type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
+  </form>
+<% } %>
+
+    </div>
+  <% } %>
+<% } %>
 
 
 <p><a href="/">← Nazad</a></p>

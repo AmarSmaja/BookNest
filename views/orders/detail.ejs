@@ -16,6 +16,7 @@
         <th>Knjiga</th>
         <th>Cijena u trenutku</th>
         <th>Ocijeni</th>
+        <th>Komentar</th>
       </tr>
     </thead>
     <tbody>
@@ -39,6 +40,13 @@
           <td>
   <% if (narudzba.status === "Zavrsena" && i.knjiga) { %>
     <a href="/ratings/new?orderId=<%= narudzba.id %>&bookId=<%= i.knjiga.id %>">Ocijeni</a>
+  <% } else { %>
+    -
+  <% } %>
+</td>
+<td>
+  <% if (narudzba.status === "Zavrsena" && i.knjiga) { %>
+    <a href="/comments/new?orderId=<%= narudzba.id %>&bookId=<%= i.knjiga.id %>">Komentariši</a>
   <% } else { %>
     -
   <% } %>

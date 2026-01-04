@@ -46,6 +46,7 @@ app.use("/notifications", require("./routes/notifications"));
 app.use("/exchanges", require("./routes/exchanges"));
 app.use("/reports", require("./routes/userReports"));
 app.use("/ratings", require("./routes/bookRatings"));
+app.use("/comments", require("./routes/comments"));
 
 app.use("/seller", require("./routes/sellerExchanges"));
 app.use("/seller", require("./routes/sellerBooks"));

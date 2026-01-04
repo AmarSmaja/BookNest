@@ -1,0 +1,22 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (knjiga) { %>
+  <p><strong>Knjiga:</strong> <%= knjiga.naziv %> — <%= knjiga.autor %></p>
+<% } %>
+
+<form method="post" action="/comments">
+  <input type="hidden" name="orderId" value="<%= orderId %>">
+  <input type="hidden" name="bookId" value="<%= bookId %>">
+
+  <label>Sadrzaj komentara</label><br/>
+  <textarea name="sadrzaj" rows="4" style="width:100%; max-width:700px" required></textarea>
+
+  <div style="margin-top:12px;">
+    <button type="submit">Posalji komentar</button>
+    <a href="/orders/<%= orderId %>">Nazad</a>
+  </div>
+</form>

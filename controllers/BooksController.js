@@ -1,5 +1,6 @@
 const db = require("../models");
 const bookService = require("../services/BookService");
+const bookCommentService = require("../services/BookCommentService");
 
 class BooksController {
     async detail(req, res) {
@@ -42,27 +43,29 @@ class BooksController {
         let canExchange = false;
         let canReport = false;
 
+        let currentUser = null;
         if (req.session && req.session.user) {
-            const u = req.session.user;
-            if (u.id !== knjiga.prodavacId) {
-                canReport = true;
-            }
-        }
+            currentUser = req.session.user;
 
-        if (req.session && req.session.user) {
-            const u = req.session.user;
-
-            const nijeMoja = (u.id !== knjiga.prodavacId);
+            const nijeMoja = (currentUser.id !== knjiga.prodavacId);
             const aktivna = (knjiga.status === "Aktivna");
-            const exchangeable = (knjiga.is_exchangeable === true);
+            const exchangeable = (knjiga.spremnaZaRazmjenu === true);
 
             if (nijeMoja && aktivna) {
                 canBuy = true;
                 if (exchangeable) {
                     canExchange = true;
                 }
+                canReport = true;
             }
         }
+
+        let isAdmin = false;
+        if (currentUser && currentUser.role === "Admin") {
+            isAdmin = true;
+        }
+
+        const komentari = await bookCommentService.izlistajKnjigu(id);
 
         res.render("books/detail", {
             title: knjiga.naziv,
@@ -70,6 +73,9 @@ class BooksController {
             canBuy,
             canExchange,
             canReport,
+            komentari,
+            currentUser,
+            isAdmin,
             error: null,
         });
     }
