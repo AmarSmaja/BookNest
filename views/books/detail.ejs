@@ -15,9 +15,18 @@
 <p><strong>Cijena:</strong> <%= knjiga.cijena %></p>
 <p><strong>Status:</strong> <%= knjiga.status %></p>
 <p><strong>Prodavač:</strong> <%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %></p>
+<!-- OVDJE GORE ZAMIJENITI AKO DUPLIRA PRODAVACA -->
+<p><strong>Prodavač:</strong> <%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %>
+<% if (canChat) { %>
+  <p style="margin-top:10px;">
+    <a href="/chat/start?bookId=<%= knjiga.id %>">Chat sa prodavačem</a>
+  </p>
+<% } %>
+
+
 
 <hr />
-<h3>Opis</h3> 
+<h3>Opis</h3>
 <p><%= knjiga.opis || "Nema opisa." %></p>
 
 <% if (canBuy) { %>
@@ -28,7 +37,7 @@
 <% } %>
 
 <% if (canExchange) { %>
-  <a href="/exchanges/new?bookId=<%= knjiga.id %>">Predloži razmjenu</a>
+  <a href="/exchanges/new?bookId=<%= knjiga.id %>" style="margin-left:8px;">Predloži razmjenu</a>
 <% } %>
 
 <% if (canReport) { %>
@@ -38,21 +47,70 @@
 <% } %>
 
 <hr />
-<h3>Ocijeni knjigu</h3>
+<h3>Ocjene</h3>
 
-<form method="post" action="/book-ratings">
-  <input type="hidden" name="bookId" value="<%= knjiga.id %>" />
+<% 
+  let brojOcjena = 0;
+  let prosjekOcjena = null;
 
-  <select name="ocjena">
-    <option value="5">5</option>
-    <option value="4">4</option>
-    <option value="3">3</option>
-    <option value="2">2</option>
-    <option value="1">1</option>
-  </select>
+  if (ratingStats) {
+    if (ratingStats.brojOcjena != null) brojOcjena = ratingStats.brojOcjena;
+    if (ratingStats.prosjekOcjena != null) prosjekOcjena = ratingStats.prosjekOcjena;
+  }
+%>
 
-  <button type="submit">Pošalji ocjenu</button>
-</form>
+<p>
+  <strong>Prosjek:</strong>
+  <% if (prosjekOcjena == null) { %>
+    -
+  <% } else { %>
+    <%= Number(prosjekOcjena).toFixed(1) %>
+  <% } %>
+  |
+  <strong>Broj ocjena:</strong> <%= brojOcjena %>
+</p>
+
+<% 
+  let canShowRateLink = false;
+  if (lastOrderIdForRating != null) {
+    const v = Number(lastOrderIdForRating);
+    if (Number.isFinite(v)) canShowRateLink = true;
+  }
+%>
+
+<% if (canShowRateLink) { %>
+  <p style="margin-top:8px;">
+    <a href="/ratings/new?orderId=<%= lastOrderIdForRating %>&bookId=<%= knjiga.id %>">Ocijeni ovu knjigu</a>
+  </p>
+<% } else { %>
+  <p style="margin-top:8px;">
+    Ocjenu ostavljaš iz završene narudžbe (u detaljima narudžbe klikni “Ocijeni”).
+  </p>
+<% } %>
+
+<% if (!ratings || ratings.length === 0) { %>
+  <p>Još nema ocjena.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Ocjena</th>
+        <th>Kupac ID</th>
+        <th>Datum</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let i = 0; i < ratings.length; i++) { %>
+        <% const r = ratings[i]; %>
+        <tr>
+          <td><%= r.ocjena %></td>
+          <td><%= r.kupacId %></td>
+          <td><%= r.createdAt ? new Date(r.createdAt).toLocaleString() : "" %></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+<% } %>
 
 <hr />
 <h3>Komentari</h3>
@@ -62,6 +120,7 @@
 <% } else { %>
   <% for (let i = 0; i < komentari.length; i++) { %>
     <% const c = komentari[i]; %>
+
     <div style="border:1px solid #ddd; padding:10px; margin:10px 0;">
       <p style="margin:0;">
         <strong>
@@ -71,58 +130,41 @@
             Kupac ID: <%= c.kupacId %>
           <% } %>
         </strong>
+
         <% if (c.createdAt) { %>
           — <%= new Date(c.createdAt).toLocaleString() %>
         <% } %>
       </p>
 
       <% if (c.uredjenAt) { %>
-        <p style="margin:4px 0; font-size:12px;">(Uređeno: <%= new Date(c.uredjenAt).toLocaleString() %>)</p>
+        <p style="margin:4px 0; font-size:12px;">
+          (Uređeno: <%= new Date(c.uredjenAt).toLocaleString() %>)
+        </p>
       <% } %>
 
       <pre style="white-space:pre-wrap; margin:8px 0 0 0;"><%= c.sadrzaj %></pre>
 
       <%
-      let mozeBrisati = false;
+        let mozeBrisatiOvaj = false;
 
-      if (isAdmin) {
-        mozeBrisati = true;
-      }
-
+        if (isAdmin) {
+          mozeBrisatiOvaj = true;
+        } else {
+          if (currentUser && c && c.kupacId === currentUser.id) {
+            mozeBrisatiOvaj = true;
+          }
+        }
       %>
 
-
-      <% if (mozeBrisati) { %>
-      <form method="post" action="/comments/<%= c.id %>/delete" style="margin-top:8px;">
-        <input type="hidden" name="returnTo" value="book">
-        <input type="hidden" name="bookId" value="<%= knjiga.id %>">
-        <button type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
-      </form>
+      <% if (mozeBrisatiOvaj) { %>
+        <form method="post" action="/comments/<%= c.id %>/delete" style="margin-top:8px;">
+          <input type="hidden" name="returnTo" value="book">
+          <input type="hidden" name="bookId" value="<%= knjiga.id %>">
+          <button type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
+        </form>
       <% } %>
-
-      <%
-  let mozeBrisatiOvaj = false;
-
-  if (isAdmin) {
-    mozeBrisatiOvaj = true;
-  } else {
-    if (currentUser && c && c.kupacId === currentUser.id) {
-      mozeBrisatiOvaj = true;
-    }
-  }
-%>
-
-<% if (mozeBrisatiOvaj) { %>
-  <form method="post" action="/comments/<%= c.id %>/delete" style="display:inline-block">
-    <input type="hidden" name="returnTo" value="book">
-    <input type="hidden" name="bookId" value="<%= knjiga.id %>">
-    <button type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
-  </form>
-<% } %>
-
     </div>
   <% } %>
 <% } %>
-
 
 <p><a href="/">← Nazad</a></p>

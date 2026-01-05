@@ -1,0 +1,48 @@
+<h1><%= title %></h1>
+
+<% if (otherUser) { %>
+  <p><strong>Razgovor sa:</strong> <%= otherUser.ime %> <%= otherUser.prezime %> — <%= otherUser.email %></p>
+<% } else { %>
+  <p><strong>Razgovor sa:</strong> (korisnik ne postoji)</p>
+<% } %>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<hr />
+
+<div style="border:1px solid #ddd; padding:10px; max-height:400px; overflow:auto;">
+  <% if (!messages || messages.length === 0) { %>
+    <p>Nema poruka.</p>
+  <% } else { %>
+    <% for (let i = 0; i < messages.length; i++) { %>
+      <% const m = messages[i]; %>
+
+      <div style="margin:8px 0; padding:8px; border:1px solid #eee;">
+        <div style="font-size:12px; color:#666;">
+          <% if (currentUser && m.posiljalacId === currentUser.id) { %>
+            Ti
+          <% } else { %>
+            Druga strana
+          <% } %>
+          <% if (m.createdAt) { %>
+            — <%= new Date(m.createdAt).toLocaleString() %>
+          <% } %>
+        </div>
+
+        <pre style="white-space:pre-wrap; margin:6px 0 0 0;"><%= m.sadrzaj %></pre>
+      </div>
+    <% } %>
+  <% } %>
+</div>
+
+<hr />
+
+<form method="post" action="/chat/<%= conversation.id %>/send">
+  <textarea name="body" rows="4" style="width:100%;" placeholder="Napiši poruku..."></textarea>
+  <div style="margin-top:8px;">
+    <button type="submit">Pošalji</button>
+    <a href="/chat" style="margin-left:10px;">Nazad na listu</a>
+  </div>
+</form>

@@ -54,10 +54,19 @@ class BookRatingService {
         });
     }
 
-    async listajZaKnjigu(bookId) {
+    async getStatsZaKnjigu(bookId) {
+        const bid = Number(bookId);
+        if (!Number.isFinite(bid)) {
+            return { brojOcjena: 0, prosjekOcjena: null };
+        }
+
+        return bookRatingDao.statsForBook(bid);
+    }
+
+    async listajZaKnjigu(bookId, limit) {
         const bid = Number(bookId);
         if (!Number.isFinite(bid)) return [];
-        return bookRatingDao.listForBook(bid);
+        return bookRatingDao.listForBook(bid, limit);
     }
 }
 

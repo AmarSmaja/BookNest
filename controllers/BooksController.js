@@ -1,6 +1,7 @@
 const db = require("../models");
 const bookService = require("../services/BookService");
 const bookCommentService = require("../services/BookCommentService");
+const BookRatingService = require("../services/BookRatingService");
 
 class BooksController {
     async detail(req, res) {
@@ -10,20 +11,27 @@ class BooksController {
         const knjiga = await bookService.getBookDetail(id);
         if (!knjiga) return res.status(404).send("Nije pronadjeno!");
 
+        let currentUser = null;
+        if (req.session && req.session.user) {
+            currentUser = req.session.user;
+        }
+
         let vidljivo = true;
         if (knjiga.status !== "Aktivna") {
             vidljivo = false;
 
-            if (req.session && req.session.user) {
-                const u = req.session.user;
-
-                if (u.role === "Admin") vidljivo = true;
-                if (u.id === knjiga.prodavacId) vidljivo = true;
+            if (currentUser) {
+                if (currentUser === "Admin") vidljivo = true;
+                if (currentUser.id === knjiga.prodavacId) vidljivo = true;
 
                 if (!vidljivo) {
                     const orderItem = await db.OrderItem.findOne({
                         where: { bookId: knjiga.id },
-                        include: [{ model: db.Order, required: true, where: { kupacId: u.id, status: "Zavrsena" } }],
+                        include: [{
+                            model: db.Order,
+                            required: true,
+                            where: { kupacId: currentUser.id, status: "Zavrsena" },
+                        }],
                     });
 
                     if (orderItem) vidljivo = true;
@@ -34,7 +42,7 @@ class BooksController {
         if (!vidljivo) return res.status(403).send("Nemate pristup ovoj knjizi!");
 
         if (knjiga.status === "Arhivirana") {
-            if (!req.session || !req.session.user || req.session.user.role !== "Admin") {
+            if (!currentUser || currentUser.role !== "Admin") {
                 return res.status(404).send("Nije pronadjeno!");
             }
         }
@@ -42,22 +50,26 @@ class BooksController {
         let canBuy = false;
         let canExchange = false;
         let canReport = false;
+        let canChat = false;
 
-        let currentUser = null;
-        if (req.session && req.session.user) {
-            currentUser = req.session.user;
-
+        if (currentUser) {
             const nijeMoja = (currentUser.id !== knjiga.prodavacId);
             const aktivna = (knjiga.status === "Aktivna");
             const exchangeable = (knjiga.spremnaZaRazmjenu === true);
 
             if (nijeMoja && aktivna) {
                 canBuy = true;
+                canReport = true;
+                canChat = true;
+
                 if (exchangeable) {
                     canExchange = true;
                 }
-                canReport = true;
             }
+
+            // if (nijeMoja) {
+            //     canChat = true;
+            // }
         }
 
         let isAdmin = false;
@@ -65,7 +77,11 @@ class BooksController {
             isAdmin = true;
         }
 
+        let lastOrderIdForRating = null;
+
         const komentari = await bookCommentService.izlistajKnjigu(id);
+        const ratingStats = await BookRatingService.getStatsZaKnjigu(id);
+        const ratings = await BookRatingService.listajZaKnjigu(id, 10);
 
         res.render("books/detail", {
             title: knjiga.naziv,
@@ -76,6 +92,10 @@ class BooksController {
             komentari,
             currentUser,
             isAdmin,
+            canChat,
+            ratingStats,
+            ratings,
+            lastOrderIdForRating,
             error: null,
         });
     }

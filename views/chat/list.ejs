@@ -1,0 +1,62 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (!rows || rows.length === 0) { %>
+  <p>Nema razgovora.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Razgovor</th>
+        <th>Zadnja poruka</th>
+        <th>Nepročitano</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let i = 0; i < rows.length; i++) { %>
+        <% const r = rows[i]; %>
+        <% const other = r.otherUser; %>
+        <% const last = r.lastMessage; %>
+
+        <tr>
+          <td>
+            <% if (other) { %>
+              <%= other.ime %> <%= other.prezime %> — <%= other.email %>
+            <% } else { %>
+              (korisnik ne postoji)
+            <% } %>
+          </td>
+
+          <td>
+            <% if (last) { %>
+              <%= last.sadrzaj %>
+              <% if (last.createdAt) { %>
+                <div style="font-size:12px; color:#666"><%= new Date(last.createdAt).toLocaleString() %></div>
+              <% } %>
+            <% } else { %>
+              -
+            <% } %>
+          </td>
+
+          <td>
+            <% if (r.unreadCount && r.unreadCount > 0) { %>
+              <strong><%= r.unreadCount %></strong>
+            <% } else { %>
+              0
+            <% } %>
+          </td>
+
+          <td>
+            <a href="/chat/<%= r.conversation.id %>">Otvori</a>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+<% } %>
+
+<p><a href="/">Nazad</a></p>
