@@ -86,8 +86,8 @@ class ChatService {
 
     const convos = await db.Conversation.findAll({
       where: {
-        [Op.or]: [{ userAId: me }, { userBId: me }],
         orderId: null,
+        [Op.or]: [{ userAId: me }, { userBId: me }],
       },
       order: [
         ["zadnjaPorukaAt", "DESC"],
@@ -118,27 +118,20 @@ class ChatService {
       let lastReadAt = null;
       if (readRow && readRow.zadnjeProcitanoAt) lastReadAt = readRow.zadnjeProcitanoAt;
 
-      let unread = 0;
-      if (lastReadAt) {
-        unread = await db.Message.count({
-          where: {
-            conversationId: c.id,
-            posiljalacId: { [Op.ne]: me },
-            createdAt: { [Op.gt]: lastReadAt },
-          },
-        });
-      } else {
-        unread = await db.Message.count({
-          where: {
-            conversationId: c.id,
-            posiljalacId: { [Op.ne]: me },
-          },
-        });
+      const whereUnread = {
+        conversationId: c.id,
+        posiljalacId: { [Op.ne]: me },
       }
+
+      if (lastReadAt) {
+        whereUnread.createdAt = { [Op.gt]: lastReadAt };
+      }
+
+      const unread = await db.Message.count({ where: whereUnread });
 
       rows.push({
         conversation: c,
-        otherUser,
+        otherUser: otherUser,
         lastMessage: lastMsg,
         unreadCount: unread,
       });
@@ -171,7 +164,6 @@ class ChatService {
       limit: 200,
     });
 
-    // mark as read
     const existing = await db.ConversationRead.findOne({
       where: { conversationId: cid, userId: me },
     });

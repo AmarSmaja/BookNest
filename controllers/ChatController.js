@@ -45,7 +45,7 @@ class ChatController {
             conversation: data.conversation, 
             otherUser: data.otherUser, 
             messages: data.messages, 
-            currentUser: req.session.user, 
+            currentUser: req.session.user,
             error: null 
         });
     }
