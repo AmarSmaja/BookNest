@@ -99,6 +99,14 @@ db.User.hasMany(db.Book, {
     as: "mojeKnjige"
 });
 
+db.Book.belongsTo(db.Genre, { 
+    foreignKey: "genreId" 
+});
+
+db.Genre.hasMany(db.Book, { 
+    foreignKey: "genreId" 
+});
+
 db.ExchangeRequest.hasMany(db.ExchangeOfferedBook, {
     foreignKey: "exchangeId",
     as: "offered"
