@@ -19,6 +19,11 @@ class BookService {
         return bookDao.listRecommendedByInterest(ids.genreIds, ids.languageIds, limit);
     }
 
+    async searchCatalog(filters) {
+        const knjige = await bookDao.searchPublic(filters);
+        return knjige;
+    }
+
     async getBookDetail(id) {
         const bookId = Number(id);
         if (!Number.isFinite(bookId) || bookId <= 0) return null;

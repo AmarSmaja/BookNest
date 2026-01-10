@@ -12,7 +12,7 @@ class HomeController {
     }
 
     res.render("index", { title: "BookNest", knjige: knjige, popular: popular, recommended: recommended });
-}
+    }
 }
 
 module.exports = new HomeController();
