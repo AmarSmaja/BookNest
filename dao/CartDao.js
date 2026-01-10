@@ -42,18 +42,34 @@ class CartDao {
             order: [["id", "ASC"]],
         });
 
-        const bookIds = items.map(i => i.bookId);
-        const books = bookIds.length ? await db.Book.findAll({ where: { id: bookIds } }) : [];
+        var bookIds = [];
+        for (let i = 0; i < items.length; i++) {
+            bookIds.push(items[i].bookId);
+        }
 
-        const map = new Map(books.map(b => [b.id, b]));
-        const rows = items.map(i => ({
-            id: i.id,
-            kolicina: i.kolicina,
-            bookId: i.bookId,
-            book: map.get(i.bookId) || null,
-        }));
+        var books = [];
+        if (bookIds.length > 0) {
+            books = await db.Book.findAll({ where: { id: bookIds } });
+        }
 
-        return { cart, items: rows };
+        var lookup = {};
+        for (var j = 0; j < books.length; j++) {
+            lookup[books[j].id] = books[j];
+        }
+
+        var rows = [];
+        for (var k = 0; k < items.length; k++) {
+            var it = items[k];
+
+            rows.push({
+                id: it.id,
+                kolicina: it.kolicina,
+                bookId: it.bookId,
+                book: lookup[it.bookId] ? lookup[it.bookId] : null,
+            });
+        }
+
+        return { cart: cart, items: rows };
     }
 }
 

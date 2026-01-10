@@ -1,5 +1,45 @@
 <h1><%= title %></h1>
 
+<hr />
+<h2>Najpopularnije knjige</h2>
+
+<% if (!popular || popular.length === 0) { %>
+  <p>Nema popularnih knjiga.</p>
+<% } else { %>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    <% for (let i = 0; i < popular.length; i++) { %>
+      <% const b = popular[i]; %>
+
+      <div style="border:1px solid #ddd; padding:10px; width:240px;">
+        <% if (b.glavnaSlikaUrl) { %>
+          <img src="<%= b.glavnaSlikaUrl %>" style="max-width:100%; height:auto;" />
+        <% } %>
+
+        <div style="margin-top:8px;">
+          <strong><%= b.naziv %></strong><br/>
+          <span><%= b.autor %></span><br/>
+          <div style="font-size:12px; margin-top:4px;">
+            Status: <%= b.status %>
+          </div>
+
+          <div style="font-size:13px; margin-top:6px;">
+            Prosjek: <%= (b.prosjekOcjena == null ? "-" : Number(b.prosjekOcjena).toFixed(1)) %> |
+            Broj ocjena: <%= b.brojOcjena || 0 %> |
+            Završene: <%= b.brojZavrsenihNarudzbi || 0 %>
+          </div>
+
+          <div style="margin-top:8px;">
+            <a href="/books/<%= b.id %>">Detalji</a>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
+<hr />
+<h2>Preporučeno / Random</h2>
+
 <% if (!knjige || knjige.length === 0) { %>
   <p>Nema aktivnih knjiga.</p>
 <% } else { %>

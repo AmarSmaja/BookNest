@@ -85,6 +85,9 @@
     </select>
   </div>
 
+  <label>Količina dostupno</label>
+  <input type="number" name="kolicinaDostupno" min="0" value="<%= knjiga ? knjiga.kolicinaDostupno : 1 %>">
+
   <div style="margin-top:12px;">
     <button type="submit">Sačuvaj izmjene</button>
     <a href="/seller/books">Otkaži</a>

@@ -58,7 +58,7 @@ class SellerBooksService {
 
         const updated = await sellerBooksDao.updateOwnedById(bookId, user.id, {
             ...body,
-            cijena, 
+            cijena,
             spremnaZaRazmjenu: body.spremnaZaRazmjenu === "on" || body.spremnaZaRazmjenu === true,
         });
 

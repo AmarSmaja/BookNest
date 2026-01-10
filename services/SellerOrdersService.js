@@ -62,33 +62,84 @@ class SellerOrdersService {
                 transaction: t,
             });
 
-            const bookIdsSkup = new Set();
-            
-            for (const r of rows) {
-                const id = Number(r.bookId);
-                if (!Number.isNaN(id)) bookIdsSkup.add(id);
+            let counts = {};
+            let bookIds = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                let bid = Number(rows[i].bookId);
+                if (Number.isFinite(bid)) {
+                    if (!counts[bid]) {
+                        counts[bid] = 1;
+                        bookIds.push(bid);
+                    } else {
+                        counts[bid] = counts[bid] + 1;
+                    }
+                }
             }
 
-            const bookIds = Array.from(bookIdsSkup);
-
-            if (bookIds.length === 0) return;
-
             if (noviStatus === "Odbijena" || noviStatus === "Otkazana") {
-                await db.Book.update(
-                    { status: "Aktivna" },
-                    { where: { id: bookIds }, transaction: t }
-                );
+                for (let j = 0; j < bookIds.length; j++) {
+                    let bookId = bookIds[j];
+                    let dodatak = Number(counts[bookId]);
+                    if (!Number.isFinite(dodatak) || dodatak <= 0) dodatak = 0;
+
+                    const knjiga = await db.Book.findOne({ where: { id: bookId }, transaction: t, lock: t.LOCK.UPDATE });
+
+                    if (knjiga) {
+                        let stanje = Number(knjiga.kolicinaDostupno);
+                        if (!Number.isFinite(stanje)) stanje = 0;
+
+                        let novoStanje = stanje + dodatak;
+
+                        let noviBookStatus = knjiga.status;
+                        if (knjiga.status !== "Arhivirana") {
+                            if (novoStanje > 0) {
+                                noviBookStatus = "Aktivna";
+                            } else {
+                                noviBookStatus = "Rezervisana";
+                            }
+                        }
+
+                        await knjiga.update(
+                            { kolicinaDostupno: novoStanje, status: noviBookStatus },
+                            { transaction: t }
+                        );
+                    }
+                }
 
                 await orderDao.markCompleted(narudzba.id, user.id, t);
+                return;
             }
 
             if (noviStatus === "Zavrsena") {
-                await db.Book.update(
-                    { status: "Prodana/Razmjenjena" },
-                    { where: { id: bookIds }, transaction: t }
-                );
+                for (let k = 0; k < bookIds.length; k++) {
+                    let bId = bookIds[k];
+
+                    const knjiga2 = await db.Book.findOne({ where: { id: bId }, transaction: t, lock: t.LOCK.UPDATE });
+
+                    if (knjiga2) {
+                        let stanje2 = Number(knjiga2.kolicinaDostupno);
+                        if (!Number.isFinite(stanje2)) stanje2 = 0;
+
+                        let status2 = knjiga2.status;
+
+                        if (knjiga2.status !== "Arhivirana") {
+                            if (stanje2 === 0) {
+                                status2 = "Prodana/Razmjenjena";
+                            } else {
+                                status2 = "Aktivna";
+                            }
+                        }
+
+                        await knjiga2.update(
+                            { status: status2 },
+                            { transaction: t }
+                        );
+                    }
+                }
 
                 await orderDao.markCompleted(narudzba.id, user.id, t);
+                return;
             }
         });
     }

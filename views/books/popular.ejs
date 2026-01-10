@@ -1,0 +1,46 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (!books || books.length === 0) { %>
+  <p>Nema podataka.</p>
+<% } else { %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Knjiga</th>
+        <th>Prosjek</th>
+        <th>Broj ocjena</th>
+        <th>Završene narudžbe</th>
+        <th>Akcija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let i = 0; i < books.length; i++) { %>
+        <% const b = books[i]; %>
+
+        <% let prosjekText = "-"; %>
+        <% if (b.prosjekOcjena != null) { prosjekText = Number(b.prosjekOcjena).toFixed(1); } %>
+
+        <tr>
+          <td>
+            <% if (b.photo_url) { %>
+              <img src="<%= b.photo_url %>" alt="cover" style="max-width:60px; height:auto; vertical-align:middle; margin-right:8px;" />
+            <% } %>
+            <strong><%= b.naziv %></strong> — <%= b.autor %>
+          </td>
+          <td><%= prosjekText %></td>
+          <td><%= b.brojOcjena %></td>
+          <td><%= b.brojZavrsenihNarudzbi %></td>
+          <td><a href="/books/<%= b.id %>">Detalji</a></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+<% } %>
+
+<p style="margin-top:12px;">
+  <a href="/">Nazad</a>
+</p>

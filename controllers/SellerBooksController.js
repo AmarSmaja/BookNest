@@ -41,6 +41,13 @@ class SellerBooksController {
 
     async update(req, res) {
         try {
+            let kolicinaDostupno = 1;
+
+            if (req.body && req.body.kolicinaDostupno != null) {
+                const n = Number(req.body.kolicinaDostupno);
+                if (Number.isFinite(n) && n >= 0) kolicinaDostupno = n; 
+            }
+
             await sellerBooksService.updateBook(req.session.user, req.params.id, req.body);
             return res.redirect("/seller/books");
         } catch (e) {
@@ -51,12 +58,20 @@ class SellerBooksController {
                 error: e.message,
                 values: req.body,
                 bookId: req.params.id,
+                kolicinaDostupno: kolicinaDostupno,
             });
         }
     }
 
     async create(req, res) {
         try {
+            let kolicinaDostupno = 1;
+
+            if (req.body && req.body.kolicinaDostupno != null) {
+                const n = Number(req.body.kolicinaDostupno);
+                if (Number.isFinite(n) && n >= 0) kolicinaDostupno = n; 
+            }
+
             await sellerBooksService.createBook(req.session.user, req.body);
             return res.redirect("/seller/books");
         } catch (e) {
@@ -64,6 +79,7 @@ class SellerBooksController {
             return res.status(400).render("books/new", {
                 title: "Dodaj knjigu",
                 lookups,
+                kolicinaDostupno: kolicinaDostupno,
                 error: e.message,
                 values: req.body,
             });

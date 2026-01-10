@@ -109,6 +109,14 @@ const Book = sequelize.define(
             field: "photo_url",
         },
 
+        kolicinaDostupno: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+            field: "kolicina_dostupno",
+            validate: { min: 0 },
+        },
+
         status: {
             type: DataTypes.STRING(50),
             allowNull: false,

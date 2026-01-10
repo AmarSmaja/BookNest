@@ -1,46 +1,85 @@
+const { Op, literal } = require("sequelize");
 const db = require("../models");
 const cartDao = require("../dao/CartDao");
 const notificationDao = require("../dao/NotificationDao");
-const { noTrueLogging } = require("sequelize/lib/utils/deprecations");
 
 class OrderService {
     async checkoutFromCart(user) {
         const sequelize = db.sequelize;
-        if (!sequelize) throw new Error("db.sequelize nije dostupan!");
+        if (!sequelize) throw new Error("Error sa sequelizeom!");
 
         return sequelize.transaction(async (t) => {
-            const { items } = await cartDao.getCartView(user.id);
-            const rows = items.filter(r => r.book);
+            const rezultat = await cartDao.getCartView(user.id);
+            const items = rezultat.items;
+
+            var rows = [];
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].book) {
+                    rows.push(items[i]);
+                }
+            }
 
             if (rows.length === 0) throw new Error("Korpa je prazna!");
 
-            for (const r of rows) {
-                if (r.book.status !== "Aktivna") {
-                    throw new Error(`Knjiga ${r.book.naziv} vise nije dostupna!`);
+            let poSelleru = {};
+            let sellerIds = [];
+
+            for (let rIndex = 0; rIndex < rows.length; rIndex++) {
+                let r = rows[rIndex];
+
+                let qty = Number(r.kolicina);
+                if (!Number.isFinite(qty) || qty <= 0) qty = 1;
+
+                const knjiga = await db.Book.findOne({
+                    where: { id: r.book.id },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+
+                if (!knjiga) throw new Error("Jedna od knjiga vise ne postoji!");
+                if (knjiga.status !== "Aktivna") throw new Error("Jedna od knjiga vise nije dostupna!");
+                if (knjiga.prodavacId === user.id) throw new Error("Ne mozes kupiti svoju knjigu!");
+
+                let stanje = Number(knjiga.kolicinaDostupno);
+                if (!Number.isFinite(stanje)) stanje = 0;
+
+                if (stanje < qty) throw new Error("Nema dovoljno primjeraka te knjige na stanju za jednu od knjiga0!");
+
+                let novoStanje = stanje - qty;
+                let noviStatus = "Aktivna";
+                
+                if (novoStanje === 0) {
+                    noviStatus = "Rezervisana";
                 }
 
-                if (r.book.prodavacId === user.id) {
-                    throw new Error("Ne mozes kupiti svoju knjigu!");
+                await knjiga.update(
+                    { kolicinaDostupno: novoStanje, status: noviStatus },
+                    { transaction: t },
+                );
+
+                let sellerKey = String(knjiga.prodavacId);
+                if (!poSelleru[sellerKey]) {
+                    poSelleru[sellerKey] = [];
+                    sellerIds.push(knjiga.prodavacId);
                 }
+
+                poSelleru[sellerKey].push({ book: knjiga, qty: qty });
             }
 
-            const grupisiPoSelleru = new Map();
-            for (const r of rows) {
-                const sid = r.book.prodavacId;
-                if (!grupisiPoSelleru.has(sid)) grupisiPoSelleru.set(sid, []);
-                grupisiPoSelleru.get(sid).push(r);
-            }
+            let napravljeniOrderi = [];
 
-            const napravljeniOrderi = [];
+            for (let s = 0; s < sellerIds.length; s++) {
+                let sellerId = sellerIds[s];
+                let key = String(sellerId);
+                let sellerRows = poSelleru[key];
 
-            for (const [sellerId, sellerRows] of grupisiPoSelleru.entries()) {
                 let total = 0;
-                for (const r of sellerRows) {
-                    total += Number(r.book.cijena) * Number(r.kolicina);
+                for (let j = 0; j < sellerRows.length; j++) {
+                    total += Number(sellerRows[j].book.cijena) * Number(sellerRows[j].qty);
                 }
-
+                
                 const narudzba = await db.Order.create({
-                    kupacId: user.id, 
+                    kupacId: user.id,
                     prodavacId: sellerId,
                     tip: "Prodaja",
                     ukupnaCijena: total,
@@ -49,26 +88,21 @@ class OrderService {
                 await notificationDao.create({
                     userId: sellerId,
                     tip: "Nova_narudzba",
-                    payloadJson: {
-                        orderId: narudzba.id,
-                        kupacId: user.id,
-                    },
+                    payloadJson: { orderId: narudzba.id, kupacId: user.id },
                 }, t);
 
-                for (const r of sellerRows) {
-                    const qty = Number(r.kolicina) || 1;
-                    for (let i = 0; i < qty; i++) {
+                for (let k = 0; k < sellerRows.length; k++) {
+                    let row = sellerRows[k];
+                    let q = Number(row.qty);
+                    if (!Number.isFinite(q) || q <= 0) q = 1;
+
+                    for (let x = 0; x < q; x++) {
                         await db.OrderItem.create({
                             orderId: narudzba.id,
-                            bookId: r.book.id,
-                            cijenaUTrenutku: r.book.cijena,
+                            bookId: row.book.id,
+                            cijenaUTrenutku: row.book.cijena,
                         }, { transaction: t });
                     }
-
-                    await db.Book.update(
-                        { status: "Rezervisana" }, 
-                        { where: { id: r.book.id }, transaction: t }
-                    );
                 }
 
                 napravljeniOrderi.push(narudzba);
@@ -77,6 +111,60 @@ class OrderService {
             await cartDao.clearCart(user.id, t);
             return napravljeniOrderi;
         });
+    }
+
+    async rezervisiKnjige(bookIds, t) {
+        for (let i = 0; i < bookIds.length; i++) {
+            const bookId = Number(bookIds[i]);
+            if (!Number.isFinite(bookId)) throw new Error("Neispravan bookId!");
+
+            const [affected] = await db.Book.update(
+                { kolicinaDostupno: literal('"kolicina_dostpuno" - 1') },
+                {
+                    where: {
+                        id: bookId,
+                        status: "Aktivna",
+                        kolicinaDostupno: { [Op.gte]: 1 },
+                    }, transaction: t,
+                }
+            );
+
+            if (affected !== 1) throw new Error("Knjige nema na stanju!");
+
+            await db.Book.update(
+                { status: "Prodana/Razmjenjena" },
+                {
+                    where: {
+                        id: bookId,
+                        status: "Aktivna",
+                        kolicinaDostupno: 0,
+                    }, transaction: t,
+                }
+            );
+        }
+    }
+
+    async vratiKnjiguNaStanje(bookIds, t) {
+        for (let i = 0; i < bookIds.length; i++) {
+            const bookId = Number(bookIds[i]);
+            if (!Number.isFinite(bookId)) continue;
+
+            await db.Book.update(
+                { kolicinaDostupno: literal('"kolicina_dostupno" + 1') },
+                { where: { id: bookId }, transaction: t }
+            );
+
+            await db.Book.update(
+                { status: "Aktivna" },
+                {
+                    where: {
+                        id: bookId,
+                        status: "Prodana/Razmjenjena",
+                        kolicinaDostupno: { [Op.gt]: 0 },
+                    }, transaction: tt
+                }
+            );
+        }
     }
 
     async listMyOrders(userId) {
@@ -109,26 +197,31 @@ class OrderService {
         if (!Number.isFinite(id)) throw new Error("Neispravan ID narudzbe!");
 
         return db.sequelize.transaction(async (t) => {
-            const narudzba = await db.Order.findOne({
-                where: { id, kupacId: buyerId },
-                transaction: t,
-            });
+            const narudzba = await db.Order.findOne({ where: { id: id, kupacId: buyerId }, transaction: t });
             if (!narudzba) throw new Error("Narudzba nije pronadjena!");
 
-            if (narudzba.status !== "Na_cekanju") {
-                throw new Error("Narudzbu je moguce otkazati samo ako je na cekanju!");
-            }
+            if (narudzba.status !== "Na_cekanju") throw new Error("Narudzbu je moguce otkazati samo ako je na cekanju!");
 
             const rows = await db.OrderItem.findAll({
                 where: { orderId: narudzba.id },
-                attributes: ["bookId"],
+                attributes: ["id"],
                 raw: true,
                 transaction: t,
             });
 
-            const bookIds = [];
-            for (const r of rows) {
-                if (r.bookId != null) bookIds.push(Number(r.bookId));
+            let counts = [];
+            let bookIds = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                let bid = Number(rows[i].bookId);
+                if (Number.isFinite(bid)) {
+                    if (!counts[bid]) {
+                        counts[bid] = 1;
+                        bookIds.push(bid);
+                    } else {
+                        counts[bid] = counts[bid] + 1;
+                    }
+                }
             }
 
             await db.Order.update(
@@ -136,11 +229,37 @@ class OrderService {
                 { where: { id: narudzba.id, kupacId: buyerId }, transaction: t }
             );
 
-            if (bookIds.length > 0) {
-                await db.Book.update(
-                    { status: "Aktivna" },
-                    { where: { id: bookIds }, transaction: t }
-                );
+            for (let j = 0; j < bookIds.length; j++) {
+                let bookId = bookIds[j];
+                let dodatak = Number(counts[bookId]);
+                if (!Number.isFinite(dodatak) || dodatak <= 0) dodatak = 0;
+
+                const knjiga = await db.Book.findOne({
+                    where: { id: bookId },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+
+                if (knjiga) {
+                    let stanje = Number(knjiga.kolicinaDostupno);
+                    if (!Number.isFinite(stanje)) stanje = 0;
+
+                    let novoStanje = stanje + dodatak;
+
+                    let noviStatus = knjiga.status;
+                    if (knjiga.status !== "Arhivirana") {
+                        if (novoStanje > 0) {
+                            noviStatus = "Aktivna";
+                        } else {
+                            noviStatus = "Rezervisana";
+                        }
+                    }
+
+                    await knjiga.update(
+                        { kolicinaDostupno: novoStanje, status: noviStatus },
+                        { transaction: t }
+                    );
+                }
             }
 
             return true;

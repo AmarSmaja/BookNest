@@ -2,6 +2,7 @@ const db = require("../models");
 const bookService = require("../services/BookService");
 const bookCommentService = require("../services/BookCommentService");
 const BookRatingService = require("../services/BookRatingService");
+const popularBooksService = require("../services/PopularBooksService");
 
 class BooksController {
     async detail(req, res) {
@@ -98,6 +99,18 @@ class BooksController {
             lastOrderIdForRating,
             error: null,
         });
+    }
+
+    async popular(req, res) {
+        let limit = 10;
+        if (req.query && req.query.limit != null) {
+            const n = Number(req.query.limit);
+            if (Number.isFinite(n) && n > 0) limit = n;
+        }
+
+        const books = await popularBooksService.listPopular(limit);
+
+        return res.render("books/popular", { title: "Najpopularnije knjige", books: books, error: null });
     }
 }
 
