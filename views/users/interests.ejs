@@ -1,0 +1,55 @@
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <p style="color:red"><%= error %></p>
+<% } %>
+
+<% if (success) { %>
+  <p style="color:green"><%= success %></p>
+<% } %>
+
+<form method="post" action="/users/interests" style="border:1px solid #ddd; padding:10px;">
+  <h3>Žanrovi</h3>
+  <% if (genres && genres.length > 0) { %>
+    <% for (var i = 0; i < genres.length; i++) { %>
+      <% var gid = String(genres[i].id); %>
+      <label>
+        <input
+          type="checkbox"
+          name="zanrovi"
+          value="<%= genres[i].id %>"
+          <% if (selectedGenres && selectedGenres[gid]) { %> checked <% } %>
+        />
+        <%= genres[i].naziv %>
+      </label>
+      <br />
+    <% } %>
+  <% } else { %>
+    <p>Nema žanrova.</p>
+  <% } %>
+
+  <hr />
+
+  <h3>Jezici</h3>
+  <% if (languages && languages.length > 0) { %>
+    <% for (var j = 0; j < languages.length; j++) { %>
+      <% var lid = String(languages[j].id); %>
+      <label>
+        <input
+          type="checkbox"
+          name="jezici"
+          value="<%= languages[j].id %>"
+          <% if (selectedLanguages && selectedLanguages[lid]) { %> checked <% } %>
+        />
+        <%= languages[j].naziv %>
+      </label>
+      <br />
+    <% } %>
+  <% } else { %>
+    <p>Nema jezika.</p>
+  <% } %>
+
+  <hr />
+
+  <button type="submit">Sačuvaj interese</button>
+</form>
