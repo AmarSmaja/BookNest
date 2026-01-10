@@ -1,55 +1,75 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
+
+<h1>Moji interesi</h1>
 
 <% if (error) { %>
-  <p style="color:red"><%= error %></p>
+  <div class="alert alert-error"><%= error %></div>
 <% } %>
 
 <% if (success) { %>
-  <p style="color:green"><%= success %></p>
+  <div class="alert alert-success"><%= success %></div>
 <% } %>
 
-<form method="post" action="/users/interests" style="border:1px solid #ddd; padding:10px;">
-  <h3>Žanrovi</h3>
-  <% if (genres && genres.length > 0) { %>
-    <% for (var i = 0; i < genres.length; i++) { %>
-      <% var gid = String(genres[i].id); %>
-      <label>
-        <input
-          type="checkbox"
-          name="zanrovi"
-          value="<%= genres[i].id %>"
-          <% if (selectedGenres && selectedGenres[gid]) { %> checked <% } %>
-        />
-        <%= genres[i].naziv %>
-      </label>
-      <br />
+<div class="panel">
+  <form method="post" action="/users/interests">
+    <h2 style="margin-top:0;">Žanrovi</h2>
+
+    <% if (!genres || genres.length === 0) { %>
+      <div class="empty-state">Nema žanrova.</div>
+    <% } else { %>
+      <div class="check-grid">
+        <% for (var i = 0; i < genres.length; i++) { %>
+          <% var g = genres[i]; %>
+
+          <%
+            var checked = false;
+            if (selectedGenreIds && selectedGenreIds.length) {
+              for (var x = 0; x < selectedGenreIds.length; x++) {
+                if (Number(selectedGenreIds[x]) === Number(g.id)) checked = true;
+              }
+            }
+          %>
+
+          <label class="check-item">
+            <input type="checkbox" name="zanrovi" value="<%= g.id %>" <% if (checked) { %>checked<% } %> />
+            <span><%= g.naziv %></span>
+          </label>
+        <% } %>
+      </div>
     <% } %>
-  <% } else { %>
-    <p>Nema žanrova.</p>
-  <% } %>
 
-  <hr />
+    <hr style="margin:18px 0;" />
 
-  <h3>Jezici</h3>
-  <% if (languages && languages.length > 0) { %>
-    <% for (var j = 0; j < languages.length; j++) { %>
-      <% var lid = String(languages[j].id); %>
-      <label>
-        <input
-          type="checkbox"
-          name="jezici"
-          value="<%= languages[j].id %>"
-          <% if (selectedLanguages && selectedLanguages[lid]) { %> checked <% } %>
-        />
-        <%= languages[j].naziv %>
-      </label>
-      <br />
+    <h2>Jezici</h2>
+
+    <% if (!languages || languages.length === 0) { %>
+      <div class="empty-state">Nema jezika.</div>
+    <% } else { %>
+      <div class="check-grid">
+        <% for (var j = 0; j < languages.length; j++) { %>
+          <% var l = languages[j]; %>
+
+          <%
+            var checked2 = false;
+            if (selectedLanguageIds && selectedLanguageIds.length) {
+              for (var y = 0; y < selectedLanguageIds.length; y++) {
+                if (Number(selectedLanguageIds[y]) === Number(l.id)) checked2 = true;
+              }
+            }
+          %>
+
+          <label class="check-item">
+            <input type="checkbox" name="jezici" value="<%= l.id %>" <% if (checked2) { %>checked<% } %> />
+            <span><%= l.naziv %></span>
+          </label>
+        <% } %>
+      </div>
     <% } %>
-  <% } else { %>
-    <p>Nema jezika.</p>
-  <% } %>
 
-  <hr />
+    <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-primary" type="submit">Sačuvaj</button>
+    </div>
+  </form>
+</div>
 
-  <button type="submit">Sačuvaj interese</button>
-</form>
+<%- include("../partials/layout-bottom") %>

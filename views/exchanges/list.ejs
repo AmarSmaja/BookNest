@@ -1,28 +1,165 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+<h1>Razmjene</h1>
 
-<% if (!razmjene || razmjene.length === 0) { %>
-  <p>Nema razmjena.</p>
+<% var arr = []; %>
+<% if (razmjene && razmjene.length) arr = razmjene; %>
+
+<% if (!arr || arr.length === 0) { %>
+  <div class="empty-state">
+    Nema razmjena za prikaz.
+  </div>
 <% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Status</th>
-        <th>ProdavacID</th>
-        <th>Akcija</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% razmjene.forEach(r => { %>
-        <tr>
-          <td><%= r.id %></td>
-          <td><%= r.status %></td>
-          <td><%= r.prodavacId %></td>
-          <td><a href="/exchanges/<%= r.id %>">Detalji</a></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+  <div class="exchanges-list">
+    <% for (var i = 0; i < arr.length; i++) { %>
+      <% var r = arr[i]; %>
+
+      <%
+        var datumTekst = "";
+        if (r.createdAt) datumTekst = new Date(r.createdAt).toLocaleString();
+
+        var status = "";
+        if (r.status !== undefined && r.status !== null) status = String(r.status);
+
+        var badgeClass = "badge";
+        if (status === "Na_cekanju") badgeClass = "badge badge-wait";
+        else if (status === "Prihvacena") badgeClass = "badge badge-ok";
+        else if (status === "Odbijena" || status === "Otkazana") badgeClass = "badge badge-bad";
+        else if (status) badgeClass = "badge badge-warn";
+
+        var requested = r.requestedBook;
+        var offered = [];
+        if (r.offeredBooks && r.offeredBooks.length) offered = r.offeredBooks;
+
+        var requestedTitle = "Tražena knjiga";
+        var requestedAuthor = "";
+        var requestedImg = "";
+        var requestedId = null;
+
+        if (requested) {
+          if (requested.naziv) requestedTitle = requested.naziv;
+          if (requested.autor) requestedAuthor = requested.autor;
+          if (requested.glavnaSlikaUrl) requestedImg = requested.glavnaSlikaUrl;
+          if (requested.id !== undefined && requested.id !== null) requestedId = requested.id;
+        }
+      %>
+
+      <div class="exchange-card">
+        <div class="exchange-head">
+          <div>
+            <div class="exchange-title">Razmjena #<%= r.id %></div>
+            <div class="exchange-meta"><%= datumTekst %></div>
+          </div>
+          <div class="<%= badgeClass %>"><%= status %></div>
+        </div>
+
+        <div class="exchange-body">
+          <div class="exchange-grid">
+            <div class="exchange-panel">
+              <div class="head">Tražena knjiga</div>
+              <div class="body">
+                <div class="mini-book">
+                  <div class="mini-thumb">
+                    <% if (requestedImg) { %>
+                      <% if (requestedId) { %>
+                        <a href="/books/<%= requestedId %>">
+                          <img src="<%= requestedImg %>" alt="cover" />
+                        </a>
+                      <% } else { %>
+                        <img src="<%= requestedImg %>" alt="cover" />
+                      <% } %>
+                    <% } else { %>
+                      <div class="book-cover-empty">Nema slike</div>
+                    <% } %>
+                  </div>
+                  <div>
+                    <p class="mini-title">
+                      <% if (requestedId) { %>
+                        <a href="/books/<%= requestedId %>"><%= requestedTitle %></a>
+                      <% } else { %>
+                        <%= requestedTitle %>
+                      <% } %>
+                    </p>
+                    <% if (requestedAuthor) { %>
+                      <p class="mini-author"><%= requestedAuthor %></p>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="exchange-panel">
+              <div class="head">Ponudjene knjige</div>
+              <div class="body">
+                <% if (!offered || offered.length === 0) { %>
+                  <div class="muted">Nema ponuđenih knjiga.</div>
+                <% } else { %>
+                  <div class="mini-books">
+                    <% for (var j = 0; j < offered.length; j++) { %>
+                      <%
+                        var ob = offered[j];
+
+                        var oTitle = "Knjiga";
+                        var oAuthor = "";
+                        var oImg = "";
+                        var oId = null;
+
+                        if (ob) {
+                          if (ob.naziv) oTitle = ob.naziv;
+                          if (ob.autor) oAuthor = ob.autor;
+                          if (ob.glavnaSlikaUrl) oImg = ob.glavnaSlikaUrl;
+                          if (ob.id !== undefined && ob.id !== null) oId = ob.id;
+                        }
+                      %>
+
+                      <div class="mini-book">
+                        <div class="mini-thumb">
+                          <% if (oImg) { %>
+                            <% if (oId) { %>
+                              <a href="/books/<%= oId %>">
+                                <img src="<%= oImg %>" alt="cover" />
+                              </a>
+                            <% } else { %>
+                              <img src="<%= oImg %>" alt="cover" />
+                            <% } %>
+                          <% } else { %>
+                            <div class="book-cover-empty">Nema slike</div>
+                          <% } %>
+                        </div>
+
+                        <div>
+                          <p class="mini-title">
+                            <% if (oId) { %>
+                              <a href="/books/<%= oId %>"><%= oTitle %></a>
+                            <% } else { %>
+                              <%= oTitle %>
+                            <% } %>
+                          </p>
+                          <% if (oAuthor) { %>
+                            <p class="mini-author"><%= oAuthor %></p>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <div class="exchange-actions">
+            <a class="btn btn-primary" href="/exchanges/<%= r.id %>">Detalji</a>
+
+            <% if (status === "Na_cekanju") { %>
+              <form method="post" action="/exchanges/<%= r.id %>/cancel" class="cart-inline-form">
+                <button class="btn btn-ghost" type="submit" onclick="return confirm('Otkazati razmjenu?');">Otkaži</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
 <% } %>
+
+<%- include("../partials/layout-bottom") %>

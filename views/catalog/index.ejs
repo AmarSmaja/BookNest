@@ -1,129 +1,170 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<form method="get" action="/catalog" style="margin: 12px 0; padding: 10px; border:1px solid #ddd;">
-  <div>
-    <label>Pretraga:</label>
-    <input name="q" value="<%= filters.q %>" placeholder="Naziv / Autor / Izdavač" />
+<%
+  var qVal = "";
+  var genreVal = "";
+  var languageVal = "";
+  var conditionVal = "";
+  var exchangeVal = "";
+  var minVal = "";
+  var maxVal = "";
+  var sortVal = "newest";
+
+  if (filters) {
+    if (filters.q !== undefined && filters.q !== null) qVal = String(filters.q);
+    if (filters.genreId !== undefined && filters.genreId !== null) genreVal = String(filters.genreId);
+    if (filters.languageId !== undefined && filters.languageId !== null) languageVal = String(filters.languageId);
+    if (filters.conditionId !== undefined && filters.conditionId !== null) conditionVal = String(filters.conditionId);
+    if (filters.exchangeable !== undefined && filters.exchangeable !== null) exchangeVal = String(filters.exchangeable);
+    if (filters.minPrice !== undefined && filters.minPrice !== null) minVal = String(filters.minPrice);
+    if (filters.maxPrice !== undefined && filters.maxPrice !== null) maxVal = String(filters.maxPrice);
+    if (filters.sort !== undefined && filters.sort !== null) sortVal = String(filters.sort);
+  }
+%>
+
+<h1 style="margin-top:10px;"><%= title %></h1>
+
+<div class="filters-card">
+  <div class="filters-head">
+    <h2>Pretraga i filteri</h2>
+    <div class="results-count">
+      <% var cnt = 0; %>
+      <% if (knjige && knjige.length) cnt = knjige.length; %>
+      Prikaz: <%= cnt %>
+    </div>
   </div>
 
-  <div style="margin-top:8px;">
-    <label>Žanr:</label>
-    <select name="genreId">
-      <% var selG0 = ""; if (!filters.genreId || filters.genreId === "" || filters.genreId === "0") selG0 = "selected"; %>
-      <option value="0" <%= selG0 %>>Svi</option>
-      <% for (var i = 0; i < genres.length; i++) { %>
-        <% var selG = ""; if (String(genres[i].id) === String(filters.genreId)) selG = "selected"; %>
-        <option value="<%= genres[i].id %>" <%= selG %>><%= genres[i].naziv %></option>
-      <% } %>
-    </select>
+  <div class="filters-body">
+    <form method="get" action="/catalog">
+      <div class="filters-grid">
+        <div class="filters-row" style="grid-column: 1 / span 1;">
+          <label>Pretraga</label>
+          <input name="q" placeholder="Naziv / Autor / Izdavač" value="<%= qVal %>" />
+        </div>
 
-    <label>Jezik:</label>
-    <select name="languageId">
-      <% var selL0 = ""; if (!filters.languageId || filters.languageId === "" || filters.languageId === "0") selL0 = "selected"; %>
-      <option value="0" <%= selL0 %>>Svi</option>
-      <% for (var j = 0; j < languages.length; j++) { %>
-        <% var selL = ""; if (String(languages[j].id) === String(filters.languageId)) selL = "selected"; %>
-        <option value="<%= languages[j].id %>" <%= selL %>><%= languages[j].naziv %></option>
-      <% } %>
-    </select>
+        <div class="filters-row">
+          <label>Žanr</label>
+          <select name="genreId">
+            <option value="0" <% if (!genreVal || genreVal === "0") { %>selected<% } %>>Svi</option>
+            <% if (genres && genres.length > 0) { %>
+              <% for (var i = 0; i < genres.length; i++) { %>
+                <% var g = genres[i]; %>
+                <option value="<%= g.id %>" <% if (genreVal === String(g.id)) { %>selected<% } %>><%= g.naziv %></option>
+              <% } %>
+            <% } %>
+          </select>
+        </div>
 
-    <label>Stanje:</label>
-    <select name="conditionId">
-      <% var selC0 = ""; if (!filters.conditionId || filters.conditionId === "" || filters.conditionId === "0") selC0 = "selected"; %>
-      <option value="0" <%= selC0 %>>Sva</option>
-      <% for (var k = 0; k < conditions.length; k++) { %>
-        <% var selC = ""; if (String(conditions[k].id) === String(filters.conditionId)) selC = "selected"; %>
-        <option value="<%= conditions[k].id %>" <%= selC %>><%= conditions[k].naziv %></option>
-      <% } %>
-    </select>
+        <div class="filters-row">
+          <label>Jezik</label>
+          <select name="languageId">
+            <option value="0" <% if (!languageVal || languageVal === "0") { %>selected<% } %>>Svi</option>
+            <% if (languages && languages.length > 0) { %>
+              <% for (var j = 0; j < languages.length; j++) { %>
+                <% var l = languages[j]; %>
+                <option value="<%= l.id %>" <% if (languageVal === String(l.id)) { %>selected<% } %>><%= l.naziv %></option>
+              <% } %>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="filters-row">
+          <label>Stanje</label>
+          <select name="conditionId">
+            <option value="0" <% if (!conditionVal || conditionVal === "0") { %>selected<% } %>>Sva</option>
+            <% if (conditions && conditions.length > 0) { %>
+              <% for (var k = 0; k < conditions.length; k++) { %>
+                <% var c = conditions[k]; %>
+                <option value="<%= c.id %>" <% if (conditionVal === String(c.id)) { %>selected<% } %>><%= c.naziv %></option>
+              <% } %>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="filters-row">
+          <label>Razmjena</label>
+          <select name="exchangeable">
+            <option value="" <% if (!exchangeVal) { %>selected<% } %>>Sve</option>
+            <option value="1" <% if (exchangeVal === "1") { %>selected<% } %>>Da</option>
+            <option value="0" <% if (exchangeVal === "0") { %>selected<% } %>>Ne</option>
+          </select>
+        </div>
+
+        <div class="filters-row">
+          <label>Min cijena</label>
+          <input name="minPrice" value="<%= minVal %>" />
+        </div>
+
+        <div class="filters-row">
+          <label>Max cijena</label>
+          <input name="maxPrice" value="<%= maxVal %>" />
+        </div>
+
+        <div class="filters-row">
+          <label>Sort</label>
+          <select name="sort">
+            <option value="newest" <% if (sortVal === "newest") { %>selected<% } %>>Najnovije</option>
+            <option value="price_asc" <% if (sortVal === "price_asc") { %>selected<% } %>>Cijena ↑</option>
+            <option value="price_desc" <% if (sortVal === "price_desc") { %>selected<% } %>>Cijena ↓</option>
+            <option value="name_asc" <% if (sortVal === "name_asc") { %>selected<% } %>>Naziv A–Z</option>
+            <option value="popular" <% if (sortVal === "popular") { %>selected<% } %>>Popularno</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filters-actions">
+        <button class="btn btn-primary" type="submit">Traži</button>
+        <a class="btn btn-ghost" href="/catalog">Reset</a>
+      </div>
+    </form>
   </div>
+</div>
 
-  <div style="margin-top:8px;">
-    <label>Razmjena:</label>
-    <select name="exchangeable">
-      <% var exAll = ""; if (!filters.exchangeable || filters.exchangeable === "") exAll = "selected"; %>
-      <% var exYes = ""; if (filters.exchangeable === "1") exYes = "selected"; %>
-      <% var exNo = ""; if (filters.exchangeable === "0") exNo = "selected"; %>
-      <option value="" <%= exAll %>>Sve</option>
-      <option value="1" <%= exYes %>>Samo razmjena</option>
-      <option value="0" <%= exNo %>>Bez razmjene</option>
-    </select>
-
-    <label>Min cijena:</label>
-    <input name="minPrice" value="<%= filters.minPrice %>" style="width:90px;" />
-
-    <label>Max cijena:</label>
-    <input name="maxPrice" value="<%= filters.maxPrice %>" style="width:90px;" />
-
-    <label>Sort:</label>
-    <select name="sort">
-      <% var s1 = ""; if (!filters.sort || filters.sort === "newest") s1 = "selected"; %>
-      <% var s2 = ""; if (filters.sort === "price_asc") s2 = "selected"; %>
-      <% var s3 = ""; if (filters.sort === "price_desc") s3 = "selected"; %>
-      <% var s4 = ""; if (filters.sort === "name_asc") s4 = "selected"; %>
-      <% var s5 = ""; if (filters.sort === "popular") s5 = "selected"; %>
-      <option value="newest" <%= s1 %>>Najnovije</option>
-      <option value="price_asc" <%= s2 %>>Cijena ↑</option>
-      <option value="price_desc" <%= s3 %>>Cijena ↓</option>
-      <option value="name_asc" <%= s4 %>>Naziv A-Z</option>
-      <option value="popular" <%= s5 %>>Popularno</option>
-    </select>
-
-    <button type="submit">Traži</button>
+<div class="results-bar">
+  <div class="results-count">
+    <% var cnt2 = 0; %>
+    <% if (knjige && knjige.length) cnt2 = knjige.length; %>
+    Pronađeno: <%= cnt2 %>
   </div>
-
-  <% if (filters.page && Number(filters.page) > 1) { %>
-    <input type="hidden" name="page" value="<%= filters.page %>" />
-  <% } %>
-</form>
-
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+</div>
 
 <% if (!knjige || knjige.length === 0) { %>
-  <p>Nema knjiga za prikaz.</p>
+  <div class="empty-state">Nema knjiga za prikaz.</div>
 <% } else { %>
-  <ul style="list-style:none; padding:0;">
-    <% for (var x = 0; x < knjige.length; x++) { %>
-      <li style="margin: 12px 0; padding: 12px; border: 1px solid #444;">
-        <div style="display:flex; gap:12px;">
-          <div style="width:120px;">
-            <% if (knjige[x].glavnaSlikaUrl) { %>
-              <img src="<%= knjige[x].glavnaSlikaUrl %>" alt="cover" style="width:120px; height:auto;" />
+  <div class="books-grid">
+    <% for (var i2 = 0; i2 < knjige.length; i2++) { %>
+      <% var b = knjige[i2]; %>
+
+      <% var cijenaTekst = ""; %>
+      <% if (b.cijena !== undefined && b.cijena !== null) { %>
+        <% cijenaTekst = String(b.cijena); %>
+      <% } %>
+
+      <div class="book-card">
+        <a class="book-link" href="/books/<%= b.id %>">
+          <div class="book-cover">
+            <% if (b.glavnaSlikaUrl) { %>
+              <img src="<%= b.glavnaSlikaUrl %>" alt="cover" />
+            <% } else { %>
+              <div class="book-cover-empty">Nema slike</div>
             <% } %>
           </div>
 
-          <div>
-            <h3 style="margin:0;">
-              <a href="/books/<%= knjige[x].id %>"><%= knjige[x].naziv %></a>
-            </h3>
+          <div class="book-meta">
+            <div class="book-title"><%= b.naziv %></div>
+            <div class="book-author"><%= b.autor %></div>
 
-            <div><strong>Autor:</strong> <%= knjige[x].autor %></div>
-            <div><strong>Žanr:</strong> <%= knjige[x].zanrNaziv %> | <strong>Jezik:</strong> <%= knjige[x].jezikNaziv %> | <strong>Stanje:</strong> <%= knjige[x].stanjeNaziv %></div>
-            <div><strong>Cijena:</strong> <%= knjige[x].cijena %></div>
-            <div><strong>Na stanju:</strong> <%= knjige[x].kolicinaDostupno %></div>
-            <div><strong>Prodavač:</strong> <%= knjige[x].prodavacIme %> <%= knjige[x].prodavacPrezime %></div>
-
-            <% if (knjige[x].spremnaZaRazmjenu) { %>
-              <div>Spremna za razmjenu</div>
-            <% } %>
+            <div class="book-footer">
+              <span class="link-like">Detalji</span>
+              <% if (cijenaTekst) { %>
+                <span class="book-price"><%= cijenaTekst %> KM</span>
+              <% } %>
+            </div>
           </div>
-        </div>
-      </li>
-    <% } %>
-  </ul>
-
-  <div style="margin-top:16px;">
-    <% var prevPage = Number(filters.page) - 1; %>
-    <% var nextPage = Number(filters.page) + 1; %>
-
-    <% if (Number(filters.page) > 1) { %>
-      <a href="/catalog?<%= "q=" + encodeURIComponent(filters.q || "") %>&genreId=<%= filters.genreId || 0 %>&languageId=<%= filters.languageId || 0 %>&conditionId=<%= filters.conditionId || 0 %>&exchangeable=<%= filters.exchangeable || "" %>&minPrice=<%= filters.minPrice || "" %>&maxPrice=<%= filters.maxPrice || "" %>&sort=<%= filters.sort || "newest" %>&page=<%= prevPage %>">Prev</a>
-    <% } %>
-
-    <span style="margin:0 12px;">Stranica: <%= filters.page %></span>
-
-    <% if (knjige && knjige.length === 24) { %>
-      <a href="/catalog?<%= "q=" + encodeURIComponent(filters.q || "") %>&genreId=<%= filters.genreId || 0 %>&languageId=<%= filters.languageId || 0 %>&conditionId=<%= filters.conditionId || 0 %>&exchangeable=<%= filters.exchangeable || "" %>&minPrice=<%= filters.minPrice || "" %>&maxPrice=<%= filters.maxPrice || "" %>&sort=<%= filters.sort || "newest" %>&page=<%= nextPage %>">Next</a>
+        </a>
+      </div>
     <% } %>
   </div>
 <% } %>
+
+<%- include("../partials/layout-bottom") %>

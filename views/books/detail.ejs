@@ -1,170 +1,245 @@
-<h1><%= knjiga.naziv %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (knjiga.photo_url) { %>
-  <img src="<%= knjiga.photo_url %>" alt="cover" style="max-width:250px; height:auto;" />
-<% } %>
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/">Početna</a> / <a href="/catalog">Katalog</a> / Detalji
+    </div>
+    <h1 style="margin-top:10px;"><%= knjiga.naziv %></h1>
+  </div>
+</div>
 
-<p><strong>Autor:</strong> <%= knjiga.autor %></p>
-<p><strong>Izdavač:</strong> <%= knjiga.izdavac || "-" %></p>
-<p><strong>Godina:</strong> <%= knjiga.publish_year || "-" %></p>
-
-<p><strong>Žanr:</strong> <%= knjiga.zanrNaziv %></p>
-<p><strong>Jezik:</strong> <%= knjiga.jezikNaziv %></p>
-<p><strong>Stanje:</strong> <%= knjiga.stanjeNaziv %></p>
-
-<p><strong>Cijena:</strong> <%= knjiga.cijena %></p>
-<p><strong>Status:</strong> <%= knjiga.status %></p>
-<p><strong>Prodavač:</strong> <%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %></p>
-<!-- OVDJE GORE ZAMIJENITI AKO DUPLIRA PRODAVACA -->
-<p><strong>Prodavač:</strong> <%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %>
-<% if (canChat) { %>
-  <p style="margin-top:10px;">
-    <a href="/chat/start?bookId=<%= knjiga.id %>">Chat sa prodavačem</a>
-  </p>
-<% } %>
-
-
-
-<hr />
-<h3>Opis</h3>
-<p><%= knjiga.opis || "Nema opisa." %></p>
-
-<% if (canBuy) { %>
-  <form method="post" action="/cart/add" style="display:inline-block; margin-right:8px;">
-    <input type="hidden" name="bookId" value="<%= knjiga.id %>">
-    <button type="submit">Dodaj u korpu</button>
-  </form>
-<% } %>
-
-<% if (canExchange) { %>
-  <a href="/exchanges/new?bookId=<%= knjiga.id %>" style="margin-left:8px;">Predloži razmjenu</a>
-<% } %>
-
-<% if (canReport) { %>
-  <p style="margin-top:12px;">
-    <a href="/reports/new?bookId=<%= knjiga.id %>">Prijavi ovu knjigu / prodavača</a>
-  </p>
-<% } %>
-
-<hr />
-<h3>Ocjene</h3>
-
-<% 
-  let brojOcjena = 0;
-  let prosjekOcjena = null;
-
-  if (ratingStats) {
-    if (ratingStats.brojOcjena != null) brojOcjena = ratingStats.brojOcjena;
-    if (ratingStats.prosjekOcjena != null) prosjekOcjena = ratingStats.prosjekOcjena;
-  }
-%>
-
-<p>
-  <strong>Prosjek:</strong>
-  <% if (prosjekOcjena == null) { %>
-    -
-  <% } else { %>
-    <%= Number(prosjekOcjena).toFixed(1) %>
-  <% } %>
-  |
-  <strong>Broj ocjena:</strong> <%= brojOcjena %>
-</p>
-
-<% 
-  let canShowRateLink = false;
-  if (lastOrderIdForRating != null) {
-    const v = Number(lastOrderIdForRating);
-    if (Number.isFinite(v)) canShowRateLink = true;
-  }
-%>
-
-<% if (canShowRateLink) { %>
-  <p style="margin-top:8px;">
-    <a href="/ratings/new?orderId=<%= lastOrderIdForRating %>&bookId=<%= knjiga.id %>">Ocijeni ovu knjigu</a>
-  </p>
-<% } else { %>
-  <p style="margin-top:8px;">
-    Ocjenu ostavljaš iz završene narudžbe (u detaljima narudžbe klikni “Ocijeni”).
-  </p>
-<% } %>
-
-<% if (!ratings || ratings.length === 0) { %>
-  <p>Još nema ocjena.</p>
-<% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>Ocjena</th>
-        <th>Kupac ID</th>
-        <th>Datum</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% for (let i = 0; i < ratings.length; i++) { %>
-        <% const r = ratings[i]; %>
-        <tr>
-          <td><%= r.ocjena %></td>
-          <td><%= r.kupacId %></td>
-          <td><%= r.createdAt ? new Date(r.createdAt).toLocaleString() : "" %></td>
-        </tr>
-      <% } %>
-    </tbody>
-  </table>
-<% } %>
-
-<hr />
-<h3>Komentari</h3>
-
-<% if (!komentari || komentari.length === 0) { %>
-  <p>Nema komentara.</p>
-<% } else { %>
-  <% for (let i = 0; i < komentari.length; i++) { %>
-    <% const c = komentari[i]; %>
-
-    <div style="border:1px solid #ddd; padding:10px; margin:10px 0;">
-      <p style="margin:0;">
-        <strong>
-          <% if (c.kupac) { %>
-            <%= c.kupac.ime %> <%= c.kupac.prezime %>
-          <% } else { %>
-            Kupac ID: <%= c.kupacId %>
-          <% } %>
-        </strong>
-
-        <% if (c.createdAt) { %>
-          — <%= new Date(c.createdAt).toLocaleString() %>
-        <% } %>
-      </p>
-
-      <% if (c.uredjenAt) { %>
-        <p style="margin:4px 0; font-size:12px;">
-          (Uređeno: <%= new Date(c.uredjenAt).toLocaleString() %>)
-        </p>
-      <% } %>
-
-      <pre style="white-space:pre-wrap; margin:8px 0 0 0;"><%= c.sadrzaj %></pre>
-
-      <%
-        let mozeBrisatiOvaj = false;
-
-        if (isAdmin) {
-          mozeBrisatiOvaj = true;
-        } else {
-          if (currentUser && c && c.kupacId === currentUser.id) {
-            mozeBrisatiOvaj = true;
-          }
-        }
-      %>
-
-      <% if (mozeBrisatiOvaj) { %>
-        <form method="post" action="/comments/<%= c.id %>/delete" style="margin-top:8px;">
-          <input type="hidden" name="returnTo" value="book">
-          <input type="hidden" name="bookId" value="<%= knjiga.id %>">
-          <button type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
-        </form>
+<div class="detail-grid">
+  <div class="section-card">
+    <div class="detail-cover">
+      <% if (knjiga.photo_url) { %>
+        <img src="<%= knjiga.photo_url %>" alt="cover" />
+      <% } else { %>
+        <div class="detail-cover-empty">Nema slike</div>
       <% } %>
     </div>
-  <% } %>
-<% } %>
 
-<p><a href="/">← Nazad</a></p>
+    <div class="section-body">
+      <div class="kv">
+        <div class="k">Autor</div>
+        <div class="v"><%= knjiga.autor %></div>
+
+        <% var izdavacTekst = "-"; %>
+        <% if (knjiga.izdavac !== undefined && knjiga.izdavac !== null) { %>
+          <% if (String(knjiga.izdavac).trim().length > 0) { %>
+            <% izdavacTekst = knjiga.izdavac; %>
+          <% } %>
+        <% } %>
+
+        <div class="k">Izdavač</div>
+        <div class="v"><%= izdavacTekst %></div>
+
+        <% var godinaTekst = "-"; %>
+        <% if (knjiga.publish_year !== undefined && knjiga.publish_year !== null) { %>
+          <% godinaTekst = knjiga.publish_year; %>
+        <% } %>
+
+        <div class="k">Godina</div>
+        <div class="v"><%= godinaTekst %></div>
+
+        <div class="k">Žanr</div>
+        <div class="v"><%= knjiga.zanrNaziv %></div>
+
+        <div class="k">Jezik</div>
+        <div class="v"><%= knjiga.jezikNaziv %></div>
+
+        <div class="k">Stanje</div>
+        <div class="v"><%= knjiga.stanjeNaziv %></div>
+
+        <div class="k">Cijena</div>
+        <div class="v"><%= knjiga.cijena %></div>
+
+        <div class="k">Status</div>
+        <div class="v"><%= knjiga.status %></div>
+
+        <div class="k">Prodavač</div>
+        <div class="v"><%= knjiga.prodavacIme %> <%= knjiga.prodavacPrezime %></div>
+      </div>
+
+      <div class="detail-actions">
+        <% if (canBuy) { %>
+          <form class="inline-form" method="post" action="/cart/add">
+            <input type="hidden" name="bookId" value="<%= knjiga.id %>">
+            <button class="btn btn-primary" type="submit">Dodaj u korpu</button>
+          </form>
+        <% } %>
+
+        <% if (canExchange) { %>
+          <a class="btn btn-ghost" href="/exchanges/new?bookId=<%= knjiga.id %>">Predloži razmjenu</a>
+        <% } %>
+
+        <% if (canChat) { %>
+          <a class="btn btn-ghost" href="/chat/start?bookId=<%= knjiga.id %>">Chat sa prodavačem</a>
+        <% } %>
+
+        <% if (canReport) { %>
+          <a class="btn btn-danger" href="/reports/new?bookId=<%= knjiga.id %>">Prijavi</a>
+        <% } %>
+      </div>
+
+      <div style="margin-top:12px;">
+        <a class="muted" href="/">← Nazad</a>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Opis</h2>
+      </div>
+      <div class="section-body">
+        <% var opisTekst = "Nema opisa."; %>
+        <% if (knjiga.opis !== undefined && knjiga.opis !== null) { %>
+          <% if (String(knjiga.opis).trim().length > 0) { %>
+            <% opisTekst = knjiga.opis; %>
+          <% } %>
+        <% } %>
+        <p style="margin:0;"><%= opisTekst %></p>
+      </div>
+    </div>
+
+    <div style="height:12px;"></div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Ocjene</h3>
+      </div>
+      <div class="section-body">
+        <%
+          var brojOcjena = 0;
+          var prosjekOcjena = null;
+
+          if (ratingStats) {
+            if (ratingStats.brojOcjena != null) brojOcjena = ratingStats.brojOcjena;
+            if (ratingStats.prosjekOcjena != null) prosjekOcjena = ratingStats.prosjekOcjena;
+          }
+        %>
+
+        <p style="margin-top:0;">
+          <strong>Prosjek:</strong>
+          <% if (prosjekOcjena == null) { %>
+            -
+          <% } else { %>
+            <%= Number(prosjekOcjena).toFixed(1) %>
+          <% } %>
+          |
+          <strong>Broj ocjena:</strong> <%= brojOcjena %>
+        </p>
+
+        <%
+          var canShowRateLink = false;
+          if (lastOrderIdForRating != null) {
+            var v = Number(lastOrderIdForRating);
+            if (Number.isFinite(v)) canShowRateLink = true;
+          }
+        %>
+
+        <% if (canShowRateLink) { %>
+          <a class="btn btn-ghost" href="/ratings/new?orderId=<%= lastOrderIdForRating %>&bookId=<%= knjiga.id %>">Ocijeni ovu knjigu</a>
+        <% } else { %>
+          <p class="muted">Ocjenu ostavljaš iz završene narudžbe (u detaljima narudžbe klikni “Ocijeni”).</p>
+        <% } %>
+
+        <div style="height:10px;"></div>
+
+        <% if (!ratings || ratings.length === 0) { %>
+          <p class="muted">Još nema ocjena.</p>
+        <% } else { %>
+          <table>
+            <thead>
+              <tr>
+                <th>Ocjena</th>
+                <th>Kupac ID</th>
+                <th>Datum</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (var i = 0; i < ratings.length; i++) { %>
+                <% var r = ratings[i]; %>
+
+                <% var datumTekst = ""; %>
+                <% if (r.createdAt) { %>
+                  <% datumTekst = new Date(r.createdAt).toLocaleString(); %>
+                <% } %>
+
+                <tr>
+                  <td><%= r.ocjena %></td>
+                  <td><%= r.kupacId %></td>
+                  <td><%= datumTekst %></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+    </div>
+
+    <div style="height:12px;"></div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Komentari</h3>
+      </div>
+      <div class="section-body">
+        <% if (!komentari || komentari.length === 0) { %>
+          <p class="muted">Nema komentara.</p>
+        <% } else { %>
+          <% for (var i = 0; i < komentari.length; i++) { %>
+            <% var c = komentari[i]; %>
+
+            <%
+              var authorTekst = "Kupac ID: " + c.kupacId;
+              if (c.kupac) {
+                authorTekst = c.kupac.ime + " " + c.kupac.prezime;
+              }
+
+              var createdTekst = "";
+              if (c.createdAt) createdTekst = new Date(c.createdAt).toLocaleString();
+
+              var editedTekst = "";
+              if (c.uredjenAt) editedTekst = new Date(c.uredjenAt).toLocaleString();
+
+              var mozeBrisatiOvaj = false;
+              if (isAdmin) {
+                mozeBrisatiOvaj = true;
+              } else {
+                if (currentUser && c && c.kupacId === currentUser.id) {
+                  mozeBrisatiOvaj = true;
+                }
+              }
+            %>
+
+            <div class="comment-card">
+              <div class="comment-head">
+                <div class="comment-author"><%= authorTekst %></div>
+                <div class="comment-time"><%= createdTekst %></div>
+              </div>
+
+              <% if (editedTekst) { %>
+                <div class="comment-time">(Uređeno: <%= editedTekst %>)</div>
+              <% } %>
+
+              <p class="comment-text"><%= c.sadrzaj %></p>
+
+              <% if (mozeBrisatiOvaj) { %>
+                <form class="inline-form" method="post" action="/comments/<%= c.id %>/delete" style="margin-top:10px;">
+                  <input type="hidden" name="returnTo" value="book">
+                  <input type="hidden" name="bookId" value="<%= knjiga.id %>">
+                  <button class="btn btn-danger" type="submit" onclick="return confirm('Obrisati komentar?');">Obrisi</button>
+                </form>
+              <% } %>
+            </div>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

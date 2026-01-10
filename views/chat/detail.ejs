@@ -1,48 +1,100 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (otherUser) { %>
-  <p><strong>Razgovor sa:</strong> <%= otherUser.ime %> <%= otherUser.prezime %> — <%= otherUser.email %></p>
-<% } else { %>
-  <p><strong>Razgovor sa:</strong> (korisnik ne postoji)</p>
-<% } %>
+<%
+  var otherName = "Razgovor";
+  if (otherUser) {
+    var ime = "";
+    if (otherUser.ime !== undefined && otherUser.ime !== null) ime = String(otherUser.ime);
+
+    var prezime = "";
+    if (otherUser.prezime !== undefined && otherUser.prezime !== null) prezime = String(otherUser.prezime);
+
+    var full = (ime + " " + prezime).trim();
+    if (full.length > 0) otherName = full;
+    else if (otherUser.email) otherName = String(otherUser.email);
+  }
+
+  var convId = null;
+  if (conversation && conversation.id !== undefined && conversation.id !== null) convId = Number(conversation.id);
+
+  var myId = null;
+  if (currentUser && currentUser.id !== undefined && currentUser.id !== null) myId = Number(currentUser.id);
+
+  var msgArr = [];
+  if (messages && messages.length) msgArr = messages;
+%>
+
+<div class="chat-detail-head">
+  <div>
+    <h1>Chat</h1>
+    <div class="muted"><%= otherName %></div>
+  </div>
+  <div>
+    <a class="btn btn-ghost" href="/chat">Nazad</a>
+  </div>
+</div>
 
 <% if (error) { %>
-  <p style="color:red"><%= error %></p>
+  <div class="alert alert-error"><%= error %></div>
 <% } %>
 
-<hr />
-
-<div style="border:1px solid #ddd; padding:10px; max-height:400px; overflow:auto;">
-  <% if (!messages || messages.length === 0) { %>
-    <p>Nema poruka.</p>
+<div class="panel chat-messages" id="chatMessages">
+  <% if (!msgArr || msgArr.length === 0) { %>
+    <div class="empty-state">Nema poruka. Pošalji prvu poruku.</div>
   <% } else { %>
-    <% for (let i = 0; i < messages.length; i++) { %>
-      <% const m = messages[i]; %>
+    <% for (var i = 0; i < msgArr.length; i++) { %>
+      <% var m = msgArr[i]; %>
 
-      <div style="margin:8px 0; padding:8px; border:1px solid #eee;">
-        <div style="font-size:12px; color:#666;">
-          <% if (currentUser && m.posiljalacId === currentUser.id) { %>
-            Ti
-          <% } else { %>
-            Druga strana
-          <% } %>
-          <% if (m.createdAt) { %>
-            — <%= new Date(m.createdAt).toLocaleString() %>
-          <% } %>
+      <%
+        var senderId = null;
+        if (m.posiljalacId !== undefined && m.posiljalacId !== null) senderId = Number(m.posiljalacId);
+
+        var isMe = false;
+        if (myId !== null && senderId !== null && Number.isFinite(myId) && Number.isFinite(senderId)) {
+          if (myId === senderId) isMe = true;
+        }
+
+        var text = "";
+        if (m.sadrzaj !== undefined && m.sadrzaj !== null) text = String(m.sadrzaj);
+
+        var vrijeme = "";
+        if (m.createdAt) {
+          try { vrijeme = new Date(m.createdAt).toLocaleString(); } catch (e) { vrijeme = ""; }
+        }
+
+        var rowCls = "msg-row";
+        if (isMe) rowCls = "msg-row me";
+      %>
+
+      <div class="<%= rowCls %>">
+        <div class="msg-bubble">
+          <div class="msg-text"><%= text %></div>
+          <div class="msg-meta muted">
+            <% if (isMe) { %>Ti<% } else { %><%= otherName %><% } %>
+            <% if (vrijeme) { %> • <%= vrijeme %><% } %>
+          </div>
         </div>
-
-        <pre style="white-space:pre-wrap; margin:6px 0 0 0;"><%= m.sadrzaj %></pre>
       </div>
     <% } %>
   <% } %>
 </div>
 
-<hr />
+<div class="panel chat-send">
+  <form method="post" action="/chat/<%= convId %>/send">
+    <textarea name="body" placeholder="Napiši poruku..." required></textarea>
+    <div class="chat-send-actions">
+      <button class="btn btn-primary" type="submit">Pošalji</button>
+    </div>
+  </form>
+</div>
 
-<form method="post" action="/chat/<%= conversation.id %>/send">
-  <textarea name="body" rows="4" style="width:100%;" placeholder="Napiši poruku..."></textarea>
-  <div style="margin-top:8px;">
-    <button type="submit">Pošalji</button>
-    <a href="/chat" style="margin-left:10px;">Nazad na listu</a>
-  </div>
-</form>
+<script>
+  (function () {
+    var el = document.getElementById("chatMessages");
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  })();
+</script>
+
+<%- include("../partials/layout-bottom") %>

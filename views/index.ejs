@@ -1,3 +1,5 @@
+<%- include("partials/layout-top") %>
+
 <h1><%= title %></h1>
 
 <hr />
@@ -6,32 +8,54 @@
 <% if (!popular || popular.length === 0) { %>
   <p>Nema popularnih knjiga.</p>
 <% } else { %>
-  <div style="display:flex; flex-wrap:wrap; gap:12px;">
-    <% for (let i = 0; i < popular.length; i++) { %>
-      <% const b = popular[i]; %>
+  <div class="books-row">
+    <% for (var i = 0; i < popular.length; i++) { %>
+      <% var b = popular[i]; %>
 
-      <div style="border:1px solid #ddd; padding:10px; width:240px;">
-        <% if (b.glavnaSlikaUrl) { %>
-          <img src="<%= b.glavnaSlikaUrl %>" style="max-width:100%; height:auto;" />
-        <% } %>
+      <% var prosjekTekst = "-"; %>
+      <% if (b.prosjekOcjena !== undefined && b.prosjekOcjena !== null) { %>
+        <% prosjekTekst = Number(b.prosjekOcjena).toFixed(1); %>
+      <% } %>
 
-        <div style="margin-top:8px;">
-          <strong><%= b.naziv %></strong><br/>
-          <span><%= b.autor %></span><br/>
-          <div style="font-size:12px; margin-top:4px;">
-            Status: <%= b.status %>
+      <% var brojOcjenaTekst = 0; %>
+      <% if (b.brojOcjena !== undefined && b.brojOcjena !== null) { %>
+        <% brojOcjenaTekst = Number(b.brojOcjena); %>
+        <% if (!Number.isFinite(brojOcjenaTekst)) brojOcjenaTekst = 0; %>
+      <% } %>
+
+      <% var zavrseneTekst = 0; %>
+      <% if (b.brojZavrsenihNarudzbi !== undefined && b.brojZavrsenihNarudzbi !== null) { %>
+        <% zavrseneTekst = Number(b.brojZavrsenihNarudzbi); %>
+        <% if (!Number.isFinite(zavrseneTekst)) zavrseneTekst = 0; %>
+      <% } %>
+
+      <div class="book-card">
+        <a class="book-link" href="/books/<%= b.id %>">
+          <div class="book-cover">
+            <% if (b.glavnaSlikaUrl) { %>
+              <img src="<%= b.glavnaSlikaUrl %>" alt="cover" />
+            <% } else { %>
+              <div class="book-cover-empty">Nema slike</div>
+            <% } %>
           </div>
 
-          <div style="font-size:13px; margin-top:6px;">
-            Prosjek: <%= (b.prosjekOcjena == null ? "-" : Number(b.prosjekOcjena).toFixed(1)) %> |
-            Broj ocjena: <%= b.brojOcjena || 0 %> |
-            Završene: <%= b.brojZavrsenihNarudzbi || 0 %>
-          </div>
+          <div class="book-meta">
+          <div class="book-title"><%= b.naziv %></div>
+          <div class="book-author"><%= b.autor %></div>
 
-          <div style="margin-top:8px;">
-            <a href="/books/<%= b.id %>">Detalji</a>
+          <% var cijenaTekst = ""; %>
+          <% if (b.cijena !== undefined && b.cijena !== null) { %>
+            <% cijenaTekst = String(b.cijena); %>
+          <% } %>
+
+          <div class="book-footer">
+            <span class="link-like">Detalji</span>
+            <% if (cijenaTekst) { %>
+              <span class="book-price"><%= cijenaTekst %> KM</span>
+            <% } %>
           </div>
         </div>
+        </a>
       </div>
     <% } %>
   </div>
@@ -40,17 +64,43 @@
 <h2>Preporučene knjige</h2>
 
 <% if (!recommended || recommended.length === 0) { %>
-  <p>Nema preporučenih knjiga.</p>
+  <% if (user) { %>
+    <p>Nema preporučenih knjiga. Dodaj interese u profilu da dobiješ preporuke.</p>
+  <% } else { %>
+    <p>Nema preporučenih knjiga.</p>
+  <% } %>
 <% } else { %>
-  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+  <div class="books-row">
     <% for (var i = 0; i < recommended.length; i++) { %>
-      <div style="border:1px solid #ddd; padding:10px; width:220px;">
-        <a href="/books/<%= recommended[i].id %>">
-          <img src="<%= recommended[i].glavnaSlikaUrl %>" alt="slika" style="width:200px; height:260px; object-fit:cover;" />
-          <h3><%= recommended[i].naziv %></h3>
+      <% var b = recommended[i]; %>
+
+      <div class="book-card">
+        <a class="book-link" href="/books/<%= b.id %>">
+          <div class="book-cover">
+            <% if (b.glavnaSlikaUrl) { %>
+              <img src="<%= b.glavnaSlikaUrl %>" alt="cover" />
+            <% } else { %>
+              <div class="book-cover-empty">Nema slike</div>
+            <% } %>
+          </div>
+
+          <div class="book-meta">
+          <div class="book-title"><%= b.naziv %></div>
+          <div class="book-author"><%= b.autor %></div>
+
+          <% var cijenaTekst = ""; %>
+          <% if (b.cijena !== undefined && b.cijena !== null) { %>
+            <% cijenaTekst = String(b.cijena); %>
+          <% } %>
+
+          <div class="book-footer">
+            <span class="link-like">Detalji</span>
+            <% if (cijenaTekst) { %>
+              <span class="book-price"><%= cijenaTekst %> KM</span>
+            <% } %>
+          </div>
+        </div>
         </a>
-        <p><b>Autor:</b> <%= recommended[i].autor %></p>
-        <p><b>Cijena:</b> <%= recommended[i].cijena %></p>
       </div>
     <% } %>
   </div>
@@ -62,30 +112,40 @@
 <% if (!knjige || knjige.length === 0) { %>
   <p>Nema aktivnih knjiga.</p>
 <% } else { %>
-  <ul style="list-style:none; padding:0;">
-    <% knjige.forEach(b => { %>
-      <li style="margin: 12px 0; padding: 12px; border: 1px solid #444;">
-        <div style="display:flex; gap:12px;">
-          <div style="width:120px;">
+  <div class="books-grid">
+    <% for (var i = 0; i < knjige.length; i++) { %>
+      <% var b = knjige[i]; %>
+
+      <div class="book-card">
+        <a class="book-link" href="/books/<%= b.id %>">
+          <div class="book-cover">
             <% if (b.glavnaSlikaUrl) { %>
-              <img src="<%= b.glavnaSlikaUrl %>" alt="cover" style="width:120px; height:auto;" />
+              <img src="<%= b.glavnaSlikaUrl %>" alt="cover" />
+            <% } else { %>
+              <div class="book-cover-empty">Nema slike</div>
             <% } %>
           </div>
 
-          <div>
-            <h3 style="margin:0;">
-              <a href="/books/<%= b.id %>"><%= b.naziv %></a>
-            </h3>
-            <div><strong>Autor:</strong> <%= b.autor %></div>
-            <div><strong>Žanr:</strong> <%= b.zanrNaziv %> | <strong>Jezik:</strong> <%= b.jezikNaziv %> | <strong>Stanje:</strong> <%= b.stanjeNaziv %></div>
-            <div><strong>Cijena:</strong> <%= b.cijena %></div>
-            <div><strong>Prodavač:</strong> <%= b.prodavacIme %> <%= b.prodavacPrezime %></div>
-            <% if (b.spremnaZaRazmjenu) { %>
-              <div>Spremna za razmjenu</div>
+          <div class="book-meta">
+          <div class="book-title"><%= b.naziv %></div>
+          <div class="book-author"><%= b.autor %></div>
+
+          <% var cijenaTekst = ""; %>
+          <% if (b.cijena !== undefined && b.cijena !== null) { %>
+            <% cijenaTekst = String(b.cijena); %>
+          <% } %>
+
+          <div class="book-footer">
+            <span class="link-like">Detalji</span>
+            <% if (cijenaTekst) { %>
+              <span class="book-price"><%= cijenaTekst %> KM</span>
             <% } %>
           </div>
         </div>
-      </li>
-    <% }) %>
-  </ul>
+        </a>
+      </div>
+    <% } %>
+  </div>
 <% } %>
+
+<%- include("partials/layout-bottom") %>

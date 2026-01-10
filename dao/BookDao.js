@@ -386,7 +386,6 @@ class BookDao {
             LIMIT :limit OFFSET :offset;
             `;
 
-        console.log(sql, repl)
         const rezultat = await db.sequelize.query(sql, { replacements: repl });
         return rezultat[0];
     }

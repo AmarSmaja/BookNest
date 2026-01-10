@@ -1,0 +1,44 @@
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/">BookNest</a>
+
+    <nav class="nav-links">
+      <a href="/catalog">Knjige</a>
+
+      <% if (user) { %>
+        <a href="/cart">Korpa</a>
+        <a href="/orders">Narudžbe</a>
+        <a href="/exchanges">Razmjene</a>
+        <a href="/notifications">Notifikacije</a>
+        <a href="/chat">Chat</a>
+      <% } %>
+
+      <% if (isSeller || isAdmin) { %>
+        <a href="/seller/books">Seller</a>
+      <% } %>
+
+      <% if (isAdmin) { %>
+        <a href="/admin/stats">Admin Stats</a>
+        <a href="/admin/lookups/genres">Lookups</a>
+        <a href="/admin/users">Users</a>
+      <% } %>
+    </nav>
+
+    <div class="nav-actions">
+      <% if (!user) { %>
+        <a class="btn btn-ghost" href="/auth/login">Login</a>
+        <a class="btn btn-primary" href="/auth/register">Registracija</a>
+      <% } else { %>
+        <div class="user-pill">
+          <span class="user-name"><%= user.ime %> <%= user.prezime %></span>
+
+          <% if (isBuyer) { %>
+            <a class="btn btn-ghost" href="/users/interests">Moji interesi</a>
+          <% } %>
+
+          <a class="btn btn-ghost" href="/auth/logout">Logout</a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</header>

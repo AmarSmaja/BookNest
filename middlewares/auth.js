@@ -1,5 +1,25 @@
-function attachUser(req, _res, next) {
-    req.user = req.session?.user || null;
+function attachUser(req, res, next) {
+    var u = null;
+
+    if (req.session && req.session.user) {
+        u = req.session.user;
+    }
+
+    req.user = u;
+    res.locals.user = u;
+
+    var isAdmin = false;
+    var isSeller = false;
+    var isBuyer = false;
+
+    if (u && u.role === "Admin") isAdmin = true;
+    if (u && u.role === "Prodavac") isSeller = true;
+    if (u && u.role === "Kupac") isBuyer = true;
+
+    res.locals.isAdmin = isAdmin;
+    res.locals.isSeller = isSeller;
+    res.locals.isBuyer = isBuyer;
+
     next();
 }
 

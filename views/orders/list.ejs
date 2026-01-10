@@ -1,29 +1,126 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (!narudzbe || narudzbe.length === 0) { %>
-  <p>Nema narudžbi.</p>
-<% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Tip</th>
-        <th>Status</th>
-        <th>Ukupno</th>
-        <th>Završena</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% narudzbe.forEach(o => { %>
-        <tr>
-          <td><%= o.id %></td>
-          <td><%= o.tip %></td>
-          <td><%= o.status %></td>
-          <td><%= o.ukupnaCijena %></td>
-          <td><%= o.zavrsenaAt ? o.zavrsenaAt : '-' %></td>
-          <td><a href="/orders/<%= o.id %>">Detalji</a></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-<% } %>
+<h1>Moje narudžbe</h1>
+
+<div class="orders-wrap">
+  <% var arr = []; %>
+  <% if (narudzbe && narudzbe.length) arr = narudzbe; %>
+
+  <% if (!arr || arr.length === 0) { %>
+    <div class="empty-state">
+      Nemaš narudžbi. Pogledaj <a href="/catalog">katalog</a>.
+    </div>
+  <% } else { %>
+    <div class="orders-list">
+      <% for (var i = 0; i < arr.length; i++) { %>
+        <% var o = arr[i]; %>
+
+        <%
+          var datumTekst = "";
+          if (o.createdAt) datumTekst = new Date(o.createdAt).toLocaleString();
+
+          var status = "";
+          if (o.status !== undefined && o.status !== null) status = String(o.status);
+
+          var badgeClass = "badge";
+          if (status === "Na_cekanju") badgeClass = "badge badge-wait";
+          else if (status === "Prihvacena") badgeClass = "badge badge-warn";
+          else if (status === "Zavrsena") badgeClass = "badge badge-ok";
+          else if (status === "Otkazana" || status === "Odbijena") badgeClass = "badge badge-bad";
+
+          var ukupno = 0;
+          if (o.cijena !== undefined && o.cijena !== null) ukupno = Number(o.cijena);
+          if (!Number.isFinite(ukupno) || ukupno < 0) ukupno = 0;
+
+          var items = [];
+          if (o.items && o.items.length) items = o.items;
+
+          var brojStavki = 0;
+          for (var j = 0; j < items.length; j++) {
+            var q = 0;
+            if (items[j].quantity !== undefined && items[j].quantity !== null) q = Number(items[j].quantity);
+            if (!Number.isFinite(q) || q <= 0) q = 1;
+            brojStavki = brojStavki + q;
+          }
+        %>
+
+        <div class="order-card">
+          <div class="order-head">
+            <div>
+              <div class="order-title">Narudžba #<%= o.id %></div>
+              <div class="order-meta"><%= datumTekst %></div>
+            </div>
+            <div class="<%= badgeClass %>"><%= status %></div>
+          </div>
+
+          <div class="order-body">
+            <div class="order-grid">
+              <div class="order-items-mini">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Knjiga</th>
+                      <th style="width:110px;">Količina</th>
+                      <th style="width:140px;">Cijena</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (!items || items.length === 0) { %>
+                      <tr>
+                        <td colspan="3">Nema stavki.</td>
+                      </tr>
+                    <% } else { %>
+                      <% for (var k = 0; k < items.length; k++) { %>
+                        <%
+                          var naziv = "";
+                          if (items[k].naziv !== undefined && items[k].naziv !== null) naziv = items[k].naziv;
+                          else naziv = "Knjiga";
+
+                          var q2 = 1;
+                          if (items[k].quantity !== undefined && items[k].quantity !== null) q2 = Number(items[k].quantity);
+                          if (!Number.isFinite(q2) || q2 <= 0) q2 = 1;
+
+                          var p2 = 0;
+                          if (items[k].cijena !== undefined && items[k].cijena !== null) p2 = Number(items[k].cijena);
+                          if (!Number.isFinite(p2) || p2 < 0) p2 = 0;
+                        %>
+                        <tr>
+                          <td><%= naziv %></td>
+                          <td><%= q2 %></td>
+                          <td><%= p2 %> KM</td>
+                        </tr>
+                      <% } %>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="order-summary">
+                <div class="sum-row">
+                  <div class="sum-label">Broj stavki</div>
+                  <div class="sum-value"><%= brojStavki %></div>
+                </div>
+                <div class="sum-row">
+                  <div class="sum-label">Ukupno</div>
+                  <div class="sum-value"><%= ukupno %> KM</div>
+                </div>
+
+                <div class="order-actions">
+                  <a class="btn btn-primary" href="/orders/<%= o.id %>">Detalji</a>
+                  <% if (status === "Na_cekanju") { %>
+                    <form method="post" action="/orders/<%= o.id %>/cancel" class="cart-inline-form">
+                      <button class="btn btn-ghost" type="submit" onclick="return confirm('Otkazati narudžbu?');">Otkaži</button>
+                    </form>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <% } %>
+    </div>
+  <% } %>
+</div>
+
+<%- include("../partials/layout-bottom") %>

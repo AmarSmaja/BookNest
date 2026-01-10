@@ -1,62 +1,85 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
+
+<h1>Chat</h1>
 
 <% if (error) { %>
-  <p style="color:red"><%= error %></p>
+  <div class="alert alert-error"><%= error %></div>
 <% } %>
 
-<% if (!rows || rows.length === 0) { %>
-  <p>Nema razgovora.</p>
-<% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>Razgovor</th>
-        <th>Zadnja poruka</th>
-        <th>Nepročitano</th>
-        <th>Akcija</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% for (let i = 0; i < rows.length; i++) { %>
-        <% const r = rows[i]; %>
-        <% const other = r.otherUser; %>
-        <% const last = r.lastMessage; %>
+<%
+  var convArr = [];
+  if (conversations && conversations.length) convArr = conversations;
+%>
 
-        <tr>
-          <td>
-            <% if (other) { %>
-              <%= other.ime %> <%= other.prezime %> — <%= other.email %>
-            <% } else { %>
-              (korisnik ne postoji)
-            <% } %>
-          </td>
+<div class="panel">
+  <% if (!convArr || convArr.length === 0) { %>
+    <div class="empty-state">
+      Nema razgovora.
+    </div>
+  <% } else { %>
+    <div class="list">
+      <% for (var i = 0; i < convArr.length; i++) { %>
+        <% var c = convArr[i]; %>
 
-          <td>
-            <% if (last) { %>
-              <%= last.sadrzaj %>
-              <% if (last.createdAt) { %>
-                <div style="font-size:12px; color:#666"><%= new Date(last.createdAt).toLocaleString() %></div>
+        <%
+          var cid = null;
+          if (c.id !== undefined && c.id !== null) cid = Number(c.id);
+
+          var otherName = "Korisnik";
+          if (c.otherUserName !== undefined && c.otherUserName !== null) otherName = String(c.otherUserName);
+
+          var preview = "";
+          if (c.lastMessageText !== undefined && c.lastMessageText !== null) preview = String(c.lastMessageText);
+
+          var vrijeme = "";
+          if (c.lastMessageAt) {
+            try { vrijeme = new Date(c.lastMessageAt).toLocaleString(); } catch (e) { vrijeme = ""; }
+          }
+
+          var unread = 0;
+          if (c.unreadCount !== undefined && c.unreadCount !== null) {
+            unread = Number(c.unreadCount);
+            if (!Number.isFinite(unread) || unread < 0) unread = 0;
+          }
+
+          var avatarLetter = "K";
+          if (otherName && otherName.length > 0) avatarLetter = otherName.substring(0, 1).toUpperCase();
+        %>
+
+        <div class="list-item">
+          <div class="list-left">
+            <div class="avatar"><%= avatarLetter %></div>
+            <div class="list-meta">
+              <div class="list-title">
+                <%= otherName %>
+                <% if (unread > 0) { %>
+                  <span class="badge"><%= unread %></span>
+                <% } %>
+              </div>
+
+              <% if (preview) { %>
+                <div class="list-sub"><%= preview %></div>
+              <% } else { %>
+                <div class="list-sub muted">Nema poruka.</div>
               <% } %>
-            <% } else { %>
-              -
-            <% } %>
-          </td>
 
-          <td>
-            <% if (r.unreadCount && r.unreadCount > 0) { %>
-              <strong><%= r.unreadCount %></strong>
-            <% } else { %>
-              0
-            <% } %>
-          </td>
+              <% if (vrijeme) { %>
+                <div class="list-time muted"><%= vrijeme %></div>
+              <% } %>
+            </div>
+          </div>
 
-          <td>
-            <a href="/chat/<%= r.conversation.id %>">Otvori</a>
-          </td>
-        </tr>
+          <div class="list-right">
+            <% if (cid !== null && Number.isFinite(cid)) { %>
+              <a class="btn btn-primary" href="/chat/<%= cid %>">Otvori</a>
+            <% } else { %>
+              <span class="muted">—</span>
+            <% } %>
+          </div>
+        </div>
       <% } %>
-    </tbody>
-  </table>
-<% } %>
+    </div>
+  <% } %>
+</div>
 
-<p><a href="/">Nazad</a></p>
+<%- include("../partials/layout-bottom") %>

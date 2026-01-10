@@ -1,10 +1,38 @@
-<h1>Login</h1>
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+<%- include("../partials/layout-top") %>
 
-<form method="post" action="/auth/login">
-  <input name="email" placeholder="Email" required />
-  <input name="password" type="password" placeholder="Password" required />
-  <button type="submit">Login</button>
-</form>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <h1>Login</h1>
+      <p>Prijavi se na BookNest račun.</p>
+    </div>
 
-<p><a href="/auth/register">Register</a></p>
+    <div class="auth-card-body">
+      <% if (error) { %>
+        <div class="alert"><%= error %></div>
+      <% } %>
+
+      <form method="post" action="/auth/login" class="form-grid">
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" name="email" required />
+        </div>
+
+        <div class="form-row">
+          <label>Lozinka</label>
+          <input type="password" name="password" required />
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Login</button>
+          <div class="form-hint">
+            Nemaš račun?
+            <a href="/auth/register">Registracija</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

@@ -1,39 +1,143 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (!items || items.length === 0) { %>
-  <p>Korpa je prazna.</p>
+<h1>Korpa</h1>
+
+<%
+  var itemsArr = [];
+  if (items && items.length) itemsArr = items;
+
+  var ukupno = 0;
+  for (var i = 0; i < itemsArr.length; i++) {
+    var it = itemsArr[i];
+
+    var q = 0;
+    if (it.quantity !== undefined && it.quantity !== null) q = Number(it.quantity);
+    if (!Number.isFinite(q) || q <= 0) q = 0;
+
+    var p = 0;
+    if (it.cijena !== undefined && it.cijena !== null) p = Number(it.cijena);
+    if (!Number.isFinite(p) || p < 0) p = 0;
+
+    ukupno = ukupno + (q * p);
+  }
+%>
+
+<% if (!itemsArr || itemsArr.length === 0) { %>
+  <div class="cart-empty">
+    Korpa je prazna. Pogledaj <a href="/catalog">katalog</a>.
+  </div>
 <% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>Knjiga</th>
-        <th>Cijena</th>
-        <th>Količina</th>
-        <th>Ukupno</th>
-        <th>Akcija</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% items.forEach(i => { %>
-        <tr>
-          <td><%= i.book.naziv %> — <%= i.book.autor %></td>
-          <td><%= i.book.cijena %></td>
-          <td><%= i.kolicina %></td>
-          <td><%= (Number(i.book.cijena) * Number(i.kolicina)).toFixed(2) %></td>
-          <td>
-            <form method="post" action="/cart/remove">
-              <input type="hidden" name="cartItemId" value="<%= i.id %>"/>
-              <button type="submit">Ukloni</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+  <div class="cart-grid">
+    <div class="cart-card">
+      <div class="cart-head">
+        <h2>Stavke</h2>
+        <div class="cart-summary-label">Ukupno stavki: <%= itemsArr.length %></div>
+      </div>
 
-  <p><strong>Ukupno:</strong> <%= ukupno.toFixed(2) %></p>
+      <div class="cart-body">
+        <% for (var i2 = 0; i2 < itemsArr.length; i2++) { %>
+          <% var it2 = itemsArr[i2]; %>
 
-  <form method="post" action="/orders/checkout">
-    <button type="submit">Checkout</button>
-  </form>
+          <%
+            var bookId = it2.bookId;
+            if (bookId === undefined || bookId === null) bookId = it2.id;
+
+            var naziv = it2.naziv;
+            if (naziv === undefined || naziv === null) naziv = "Knjiga";
+
+            var autor = it2.autor;
+            if (autor === undefined || autor === null) autor = "";
+
+            var slika = it2.glavnaSlikaUrl;
+            if (slika === undefined || slika === null) slika = it2.photo_url;
+
+            var q2 = 1;
+            if (it2.quantity !== undefined && it2.quantity !== null) q2 = Number(it2.quantity);
+            if (!Number.isFinite(q2) || q2 <= 0) q2 = 1;
+
+            var p2 = 0;
+            if (it2.cijena !== undefined && it2.cijena !== null) p2 = Number(it2.cijena);
+            if (!Number.isFinite(p2) || p2 < 0) p2 = 0;
+
+            var lineTotal = q2 * p2;
+          %>
+
+          <div class="cart-item">
+            <div class="cart-thumb">
+              <% if (slika) { %>
+                <img src="<%= slika %>" alt="cover" />
+              <% } else { %>
+                <div class="book-cover-empty">Nema slike</div>
+              <% } %>
+            </div>
+
+            <div class="cart-meta">
+              <p class="title"><a href="/books/<%= bookId %>"><%= naziv %></a></p>
+              <% if (autor) { %>
+                <p class="author"><%= autor %></p>
+              <% } %>
+              <div class="small">Cijena: <%= p2 %> KM</div>
+              <div class="small">Ukupno: <%= lineTotal %> KM</div>
+            </div>
+
+            <div class="cart-actions">
+              <div class="cart-price"><%= lineTotal %> KM</div>
+
+              <form class="cart-inline-form" method="post" action="/cart/update">
+                <input type="hidden" name="bookId" value="<%= bookId %>">
+                <div class="qty-box">
+                  <input name="quantity" value="<%= q2 %>">
+                  <button class="btn btn-ghost" type="submit">Update</button>
+                </div>
+              </form>
+
+              <form class="cart-inline-form" method="post" action="/cart/remove">
+                <input type="hidden" name="bookId" value="<%= bookId %>">
+                <button class="btn btn-danger" type="submit" onclick="return confirm('Ukloniti iz korpe?');">Ukloni</button>
+              </form>
+            </div>
+          </div>
+        <% } %>
+
+        <div style="margin-top:10px;">
+          <a class="btn btn-ghost" href="/catalog">Nastavi kupovinu</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cart-card">
+      <div class="cart-head">
+        <h2>Sažetak</h2>
+      </div>
+
+      <div class="cart-body">
+        <div class="cart-summary-row">
+          <div class="cart-summary-label">Međuzbir</div>
+          <div class="cart-summary-value"><%= ukupno %> KM</div>
+        </div>
+
+        <div class="cart-summary-row">
+          <div class="cart-summary-label">Dostava</div>
+          <div class="cart-summary-value">0 KM</div>
+        </div>
+
+        <div class="cart-summary-row">
+          <div class="cart-summary-label">Ukupno</div>
+          <div class="cart-summary-value"><%= ukupno %> KM</div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <form class="cart-inline-form" method="post" action="/orders/create">
+            <button class="btn btn-primary" type="submit">Naruči</button>
+          </form>
+
+          <form class="cart-inline-form" method="post" action="/cart/clear">
+            <button class="btn btn-ghost" type="submit" onclick="return confirm('Isprazniti korpu?');">Isprazni</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 <% } %>
+
+<%- include("../partials/layout-bottom") %>

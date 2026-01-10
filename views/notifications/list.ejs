@@ -1,56 +1,129 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (error) { %>
-  <p style="color:red"><%= error %></p>
-<% } %>
+<h1>Notifikacije</h1>
 
-<form method="post" action="/notifications/read-all" style="margin-bottom:12px;">
-  <button type="submit">Označi sve kao pročitano</button>
-</form>
-
-<% if (!notifikacije || notifikacije.length === 0) { %>
-  <p>Nema notifikacija.</p>
-<% } else { %>
-  <form method="post" action="/notifications/read-all" style="margin-bottom:12px;">
-    <button type="submit">Označi sve kao pročitano</button>
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; margin-bottom:10px;">
+  <form method="post" action="/notifications/read-all" class="cart-inline-form">
+    <button class="btn btn-primary" type="submit">Pročitaj sve</button>
   </form>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Tip</th>
-        <th>Pročitano</th>
-        <th>Payload</th>
-        <th>Akcije</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% for (let i = 0; i < notifikacije.length; i++) { %>
-        <% const n = notifikacije[i]; %>
-        <tr>
-          <td><%= n.id %></td>
-          <td><%= n.tip %></td>
-          <td><%= n.isRead %></td>
-          <td>
-            <% if (n.payloadJson) { %>
-              <pre style="margin:0;"><%= JSON.stringify(n.payloadJson, null, 2) %></pre>
-            <% } else { %>
-              -
+</div>
+
+<% var arr = []; %>
+<% if (notifikacije && notifikacije.length) arr = notifikacije; %>
+
+<% if (!arr || arr.length === 0) { %>
+  <div class="notif-empty">Nema notifikacija.</div>
+<% } else { %>
+  <div class="notif-list">
+    <% for (var i = 0; i < arr.length; i++) { %>
+      <% var n = arr[i]; %>
+
+      <%
+        var tip = "";
+        if (n.tip !== undefined && n.tip !== null) tip = String(n.tip);
+
+        var vrijeme = "";
+        if (n.createdAt) vrijeme = new Date(n.createdAt).toLocaleString();
+
+        var payload = n.payloadJson;
+
+        /* payload moze biti string ili objekat */
+        if (payload && typeof payload === "string") {
+          try { payload = JSON.parse(payload); } catch (e) { payload = {}; }
+        }
+        if (!payload) payload = {};
+
+        var title = "Notifikacija";
+        var text = "";
+        var link = "";
+        var icoText = "i";
+        var icoClass = "info";
+
+        /* Procitana? */
+        var unreadClass = "";
+        if (n.isRead !== undefined && n.isRead !== null) {
+          if (n.isRead === false || n.isRead === 0) unreadClass = "notif-unread";
+        }
+        if (n.procitana !== undefined && n.procitana !== null) {
+          if (n.procitana === false || n.procitana === 0) unreadClass = "notif-unread";
+        }
+
+        if (tip === "Status_narudzbe") {
+          title = "Promjena statusa narudžbe";
+          icoText = "O";
+          icoClass = "info";
+
+          if (payload.orderId !== undefined && payload.orderId !== null) {
+            link = "/orders/" + String(payload.orderId);
+          }
+          if (payload.status !== undefined && payload.status !== null) {
+            text = "Status: " + String(payload.status);
+            if (payload.status === "Zavrsena") icoClass = "ok";
+            else if (payload.status === "Odbijena" || payload.status === "Otkazana") icoClass = "bad";
+            else if (payload.status === "Prihvacena") icoClass = "warn";
+          }
+        } else if (tip === "Nova_poruka") {
+          title = "Nova poruka";
+          icoText = "C";
+          icoClass = "info";
+          if (payload.conversationId !== undefined && payload.conversationId !== null) {
+            link = "/chat/" + String(payload.conversationId);
+          }
+          if (payload.preview !== undefined && payload.preview !== null) {
+            text = String(payload.preview);
+          } else {
+            text = "Imaš novu poruku u chatu.";
+          }
+        } else if (tip === "Razmjena_status") {
+          title = "Razmjena";
+          icoText = "R";
+          icoClass = "info";
+          if (payload.exchangeId !== undefined && payload.exchangeId !== null) {
+            link = "/exchanges/" + String(payload.exchangeId);
+          }
+          if (payload.status !== undefined && payload.status !== null) {
+            text = "Status: " + String(payload.status);
+            if (payload.status === "Prihvacena") icoClass = "ok";
+            else if (payload.status === "Odbijena" || payload.status === "Otkazana") icoClass = "bad";
+            else icoClass = "warn";
+          }
+        } else {
+          /* Fallback */
+          title = tip ? tip : "Notifikacija";
+          icoText = "i";
+          icoClass = "info";
+          if (payload.text !== undefined && payload.text !== null) text = String(payload.text);
+        }
+      %>
+
+      <div class="notif-card <%= unreadClass %>">
+        <div class="notif-row">
+          <div class="notif-ico <%= icoClass %>"><%= icoText %></div>
+
+          <div>
+            <div class="notif-title"><%= title %></div>
+            <div class="notif-time"><%= vrijeme %></div>
+            <% if (text) { %>
+              <p class="notif-text"><%= text %></p>
             <% } %>
-          </td>
-          <td>
-            <% if (!n.isRead) { %>
-              <form method="post" action="/notifications/<%= n.id %>/read" style="display:inline-block;">
-                <button type="submit">Označi pročitano</button>
+          </div>
+
+          <div class="notif-actions">
+            <% if (link) { %>
+              <a class="btn btn-primary" href="<%= link %>">Otvori</a>
+            <% } %>
+
+            <% if (n.id !== undefined && n.id !== null) { %>
+              <form method="post" action="/notifications/<%= n.id %>/read" class="cart-inline-form">
+                <button class="btn btn-ghost" type="submit">Pročitano</button>
               </form>
-            <% } else { %>
-              -
             <% } %>
-          </td>
-        </tr>
-      <% } %>
-    </tbody>
-  </table>
+          </div>
+        </div>
+      </div>
+
+    <% } %>
+  </div>
 <% } %>
 
-<p><a href="/">Nazad</a></p>
+<%- include("../partials/layout-bottom") %>
