@@ -37,8 +37,27 @@
   </div>
 <% } %>
 
+<h2>Preporučene knjige</h2>
+
+<% if (!recommended || recommended.length === 0) { %>
+  <p>Nema preporučenih knjiga.</p>
+<% } else { %>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    <% for (var i = 0; i < recommended.length; i++) { %>
+      <div style="border:1px solid #ddd; padding:10px; width:220px;">
+        <a href="/books/<%= recommended[i].id %>">
+          <img src="<%= recommended[i].glavnaSlikaUrl %>" alt="slika" style="width:200px; height:260px; object-fit:cover;" />
+          <h3><%= recommended[i].naziv %></h3>
+        </a>
+        <p><b>Autor:</b> <%= recommended[i].autor %></p>
+        <p><b>Cijena:</b> <%= recommended[i].cijena %></p>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
 <hr />
-<h2>Preporučeno / Random</h2>
+<h2>Random</h2>
 
 <% if (!knjige || knjige.length === 0) { %>
   <p>Nema aktivnih knjiga.</p>

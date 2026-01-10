@@ -9,6 +9,8 @@ const Tag = require("./lookup/Tag");
 
 const User = require("./users/User");
 const SellerProfile = require("./users/SellerProfile");
+const UserGenreInterest = require("./users/UserGenreInterest");
+const UserLanguageInterest = require("./users/UserLanguageInterest");
 
 const Book = require("./knjige/Book");
 const BookImage = require("./knjige/BookImage");
@@ -38,7 +40,7 @@ const Notification = require("./moderacija/Notification");
 const db = {
     sequelize, Genre, Language, City, BookCondition, Tag, User, SellerProfile, Book, BookImage, BookTag, BookPickupCity, Cart, CartItem, Order, OrderItem, 
     ExchangeRequest, ExchangeOfferedBook, ExchangeRequestedBook, BookRating, BookComment, SellerReview, Conversation, ConversationBook, Message, ConversationRead,
-    Report, Notification
+    Report, Notification, UserGenreInterest, UserLanguageInterest
 };
 
 db.Cart.hasMany(db.CartItem, {
@@ -156,6 +158,38 @@ db.Book.hasMany(db.BookComment, {
 db.User.hasMany(db.BookComment, {
     foreignKey: "kupacId",
     as: "mojiKomentari",
+});
+
+db.User.hasMany(db.UserGenreInterest, { 
+    foreignKey: "userId" 
+});
+
+db.Genre.hasMany(db.UserGenreInterest, { 
+    foreignKey: "genreId" 
+});
+
+db.UserGenreInterest.belongsTo(db.User, { 
+    foreignKey: "userId" 
+});
+
+db.UserGenreInterest.belongsTo(db.Genre, { 
+    foreignKey: "genreId" 
+});
+
+db.User.hasMany(db.UserLanguageInterest, { 
+    foreignKey: "userId" 
+});
+
+db.Language.hasMany(db.UserLanguageInterest, { 
+    foreignKey: "languageId" 
+});
+
+db.UserLanguageInterest.belongsTo(db.User, { 
+    foreignKey: "userId" 
+});
+
+db.UserLanguageInterest.belongsTo(db.Language, { 
+    foreignKey: "languageId" 
 });
 
 module.exports = db;

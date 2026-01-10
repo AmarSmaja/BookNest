@@ -1,8 +1,12 @@
+const db = require("../models");
 const authService = require("../services/AuthService");
 
 class AuthController {
-    showRegister(req, res) {
-        res.render("auth/register", { error: null });
+    async showRegister(req, res) {
+        const genres = await db.Genre.findAll({ order: [["id", "ASC"]] });
+        const languages = await db.Language.findAll({ order: [["id", "ASC"]] });
+
+        res.render("auth/register", { error: null, genres: genres, languages: languages });
     }
 
     async register(req, res) {
@@ -11,10 +15,17 @@ class AuthController {
             const prezime = req.body.prezime;
             const email = req.body.email;
             const password = req.body.password;
-            await authService.register({ ime, prezime, email, password });
+
+            const zanrovi = req.body.zanrovi;
+            const jezici = req.body.jezici;
+
+            await authService.register({ ime, prezime, email, password, zanrovi, jezici });
             return res.redirect("/auth/login");
         } catch (e) {
-            return res.status(400).render("auth/register", { error: e.message });
+            const genres = await db.Genre.findAll({ order: [["id", "ASC"]] });
+            const languages = await db.Language.findAll({ order: [["id", "ASC"]] });
+
+            return res.status(400).render("auth/register", { error: e.message, genres: genres, languages: languages });
         }
     }
 

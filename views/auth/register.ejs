@@ -6,6 +6,39 @@
   <input name="prezime" placeholder="Prezime" required />
   <input name="email" placeholder="Email" required />
   <input name="password" type="password" placeholder="Password" required />
+
+  <hr />
+
+  <h3>Interesi - Žanrovi</h3>
+  <% if (genres && genres.length > 0) { %>
+    <% for (var i = 0; i < genres.length; i++) { %>
+      <label>
+        <input type="checkbox" name="zanrovi" value="<%= genres[i].id %>"/>
+        <%= genres[i].naziv %>
+      </label>
+      <br />
+    <% } %>
+  <% } else { %>
+    <p>Nema žanrova.</p>
+  <% } %>
+
+  <hr />
+
+  <h3>Interesi - Jezici</h3>
+  <% if (languages && languages.length > 0) { %>
+    <% for (var j = 0; j < languages.length; j++) { %>
+      <label>
+        <input type="checkbox" name="jezici" value="<%= languages[j].id %>"/>
+        <%= languages[j].naziv %>
+      </label>
+      <br />
+    <% } %>
+  <% } else { %>
+    <p>Nema jezika.</p>
+  <% } %>
+
+  <hr />
+
   <button type="submit">Create account</button>
 </form>
 

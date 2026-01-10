@@ -1,4 +1,5 @@
 const bookDao = require("../dao/BookDao");
+const userInterestsDao = require("../dao/UserInterestsDao");
 
 class BookService {
     async getHomeBooks() {
@@ -7,6 +8,15 @@ class BookService {
 
     async getRandomHomeBooks(limit) {
         return bookDao.listRandomPublic(limit);
+    }
+
+    async getPopularBooks(limit) {
+        return bookDao.listPopularPublic(limit);
+    }
+
+    async getRecommendedBooksForUser(userId, limit) {
+        const ids = await userInterestsDao.getInterestIds(userId);
+        return bookDao.listRecommendedByInterest(ids.genreIds, ids.languageIds, limit);
     }
 
     async getBookDetail(id) {
