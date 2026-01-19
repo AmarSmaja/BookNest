@@ -6,9 +6,9 @@ const { requireAuth } = require("../middlewares/auth");
 const usersController = require("../controllers/UsersController");
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+// router.get('/', function(req, res, next) {
+//   res.send('respond with a resource');
+// });
 
 router.get("/interests", requireAuth, profileController.showInterests.bind(profileController));
 router.post("/interests", requireAuth, profileController.saveInterests.bind(profileController));

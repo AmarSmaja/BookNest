@@ -14,7 +14,7 @@ class UserDao {
     }
 
     findPublicById(id, t) {
-        const opts = { attributes: ["id", "ime", "prezime", "role", "createdAt", "updatedAt", "profileImageUrl"], };
+        const opts = { attributes: ["id", "ime", "prezime", "role", "status", "createdAt", "updatedAt", "profileImageUrl"], };
         if (t) opts.transaction = t;
         return db.User.findByPk(id, opts);
     }

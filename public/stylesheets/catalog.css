@@ -1,0 +1,88 @@
+.filters-card {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  overflow: hidden;
+  margin: 12px 0 16px 0;
+}
+
+.filters-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.02);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.filters-head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.filters-body {
+  padding: 14px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 10px 12px;
+}
+
+@media (max-width: 900px) {
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filters-row {
+  display: grid;
+  gap: 6px;
+}
+
+.filters-row label {
+  font-size: 13px;
+  color: rgba(231,238,252,0.85);
+}
+
+.filters-row input,
+.filters-row select {
+  width: 100%;
+}
+
+.filters-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.results-count {
+  color: rgba(231,238,252,0.80);
+  font-size: 13px;
+}
+
+.empty-state {
+  border: 1px dashed rgba(255,255,255,0.18);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+  padding: 18px;
+  color: rgba(231,238,252,0.80);
+}

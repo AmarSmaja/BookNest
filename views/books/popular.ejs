@@ -1,46 +1,83 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (error) { %>
-  <p style="color:red"><%= error %></p>
-<% } %>
+<div class="popular-wrap">
+  <div class="popular-top">
+    <div>
+      <h1><%= title %></h1>
+      <p class="popular-subtitle">Top knjige po prosjeku ocjena, uz broj ocjena i završene narudžbe.</p>
+    </div>
+  </div>
 
-<% if (!books || books.length === 0) { %>
-  <p>Nema podataka.</p>
-<% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>Knjiga</th>
-        <th>Prosjek</th>
-        <th>Broj ocjena</th>
-        <th>Završene narudžbe</th>
-        <th>Akcija</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% for (let i = 0; i < books.length; i++) { %>
-        <% const b = books[i]; %>
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
 
-        <% let prosjekText = "-"; %>
-        <% if (b.prosjekOcjena != null) { prosjekText = Number(b.prosjekOcjena).toFixed(1); } %>
+  <% if (!books || books.length === 0) { %>
+    <div class="empty-state">Nema podataka.</div>
+  <% } else { %>
+    <div class="popular-card">
+      <div class="card-head">
+        <div class="meta">Ukupno: <%= books.length %></div>
+      </div>
 
-        <tr>
-          <td>
-            <% if (b.photo_url) { %>
-              <img src="<%= b.photo_url %>" alt="cover" style="max-width:60px; height:auto; vertical-align:middle; margin-right:8px;" />
+      <div class="popular-table-wrap">
+        <table class="popular-table">
+          <thead>
+            <tr>
+              <th>Knjiga</th>
+              <th>Prosjek</th>
+              <th>Broj ocjena</th>
+              <th>Završene narudžbe</th>
+              <th>Akcija</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < books.length; i++) { %>
+              <% const b = books[i]; %>
+              <% let prosjekText = "-"; %>
+              <% if (b.prosjekOcjena != null) { prosjekText = Number(b.prosjekOcjena).toFixed(1); } %>
+
+              <tr>
+                <td>
+                  <div class="popular-bookcell">
+                    <div class="popular-cover">
+                      <% if (books.photo_url) { %>
+                        <img src="<%= b.photo_url %>" alt="cover" />
+                      <% } else { %>
+                        <span class="fallback">Nema slike</span>
+                      <% } %>
+                    </div>
+
+                    <div class="popular-bookinfo">
+                      <div class="popular-title"><%= b.naziv %></div>
+                      <div class="popular-author"><%= b.autor %></div>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="popular-stat">
+                    <span class="popular-score"><%= prosjekText %></span>
+                  </div>
+                </td>
+
+                <td><span class="popular-count"><%= b.brojOcjena %></span></td>
+                <td><span class="popular-count"><%= b.brojZavrsenihNarudzbi %></span></td>
+
+                <td class="popular-actions">
+                  <a href="/books/<%= b.id %>">Detalji</a>
+                </td>
+              </tr>
             <% } %>
-            <strong><%= b.naziv %></strong> — <%= b.autor %>
-          </td>
-          <td><%= prosjekText %></td>
-          <td><%= b.brojOcjena %></td>
-          <td><%= b.brojZavrsenihNarudzbi %></td>
-          <td><a href="/books/<%= b.id %>">Detalji</a></td>
-        </tr>
-      <% } %>
-    </tbody>
-  </table>
-<% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
 
-<p style="margin-top:12px;">
-  <a href="/">Nazad</a>
-</p>
+  <div class="popular-footer">
+    <a class="btn btn-ghost" href="/">Nazad</a>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

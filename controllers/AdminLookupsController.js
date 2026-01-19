@@ -23,7 +23,7 @@ async function list(req, res) {
     var Model = getModelByType(type);
 
     if (!Model) {
-        return res.status(404).send("Nepoznat lookup tip.");
+        return res.status(404).send("Nepoznata lookup tabela.");
     }
 
     const rows = await Model.findAll({ order: [["id", "ASC"]] });
