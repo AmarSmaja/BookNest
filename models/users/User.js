@@ -31,6 +31,12 @@ const User = sequelize.define(
             allowNull: false
         },
 
+        profileImageUrl: {
+            type: DataTypes.STRING(1000),
+            allowNull: true,
+            field: "profile_image_url"
+        },
+
         role: {
             type: DataTypes.STRING(50),
             allowNull: false,

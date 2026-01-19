@@ -79,6 +79,10 @@ async function uzmiBookIdsZaRazmjenu(db, exchangeId, t) {
 
 class SellerExchangesService {
     async izlistajMoje(user) {
+        if (user.role === "Admin") {
+            return db.ExchangeRequest.findAll({ order: [["id", "ASC"]] });
+        }
+
         return exchangeDao.findSellerList(user.id);
     }
 
@@ -190,9 +194,36 @@ class SellerExchangesService {
     async changeStatus(user, exchangeId, noviStatus) {
         const id = Number(exchangeId);
         if (!Number.isFinite(id)) throw new Error("Neispravan ID razmjene!");
+        if (!user) throw new Error("Nisi logovan!");
 
-        const razmjena = await exchangeDao.findOwnedBySeller(id, user.id);
+        if (noviStatus == null) throw new Error("Status je obavezan!");
+        noviStatus = String(noviStatus).trim();
+
+        if (DOPUSTENO.indexOf(noviStatus) === -1) throw new Error("Nedopusten status!");
+
+        let razmjena = null;
+
+        if (user && user.role === "Admin") {
+            razmjena = await exchangeDao.findById(id);
+        } else {
+            const any = await db.ExchangeRequest.findByPk(id, { raw: true });
+            console.log("EXCHANGE IN DB:", any);
+            razmjena = await exchangeDao.findOwnedBySeller(id, user.id);
+        }
+
+        console.log("CHANGE STATUS TRY:", {
+            userId: user.id,
+            role: user.role,
+            exchangeId: id,
+            noviStatus: noviStatus,
+            found: !!razmjena,
+            foundKupacId: razmjena ? razmjena.kupacId : null,
+            foundProdavacId: razmjena ? razmjena.prodavacId : null,
+        });
+
         if (!razmjena) throw new Error("Razmjena nije pronadjena!");
+
+        if (NEDOPUSTENO.indexOf(razmjena.status) !== -1) throw new Error("Ne mozes mijenjati status zavrsene narudzbe!");
 
         return db.sequelize.transaction(async (t) => {
             await exchangeDao.updateStatus(id, noviStatus, t);

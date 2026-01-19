@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
@@ -39,3 +40,229 @@
 <% } %>
 
 <p><a href="/seller/exchanges">Nazad</a></p>
+-->
+<%- include("../../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/seller/exchanges">Razmjene</a> / <span><%= title %></span>
+    </div>
+    <h1 style="margin:6px 0 0 0;"><%= title %></h1>
+    <p class="muted" style="margin:6px 0 0 0;">Pregled detalja razmjene i promjena statusa.</p>
+  </div>
+
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <%
+      var badgeCls = "badge";
+      if (razmjena && razmjena.status) {
+        if (razmjena.status === "Na_cekanju") badgeCls = "badge badge-wait";
+        else if (razmjena.status === "Prihvacena") badgeCls = "badge badge-ok";
+        else if (razmjena.status === "Zavrsena") badgeCls = "badge badge-ok";
+        else if (razmjena.status === "Odbijena") badgeCls = "badge badge-bad";
+        else if (razmjena.status === "Otkazana") badgeCls = "badge badge-bad";
+        else badgeCls = "badge badge-warn";
+      }
+    %>
+    <span class="<%= badgeCls %>"><%= razmjena.status %></span>
+    <a class="btn btn-ghost" href="/seller/exchanges">Nazad</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="exchange-card">
+  <div class="exchange-head">
+    <div>
+      <p class="exchange-title" style="margin:0;">Detalji</p>
+      <div class="exchange-meta">
+        Kupac ID: <%= razmjena.kupacId %>
+      </div>
+    </div>
+  </div>
+
+  <div class="exchange-body">
+    <div class="exchange-grid">
+
+      <!-- Tražene knjige (tvoje) -->
+      <div class="exchange-panel">
+        <div class="head">Tražene knjige (tvoje)</div>
+        <div class="body">
+          <%
+            var reqArr = [];
+            if (razmjena && razmjena.requested && razmjena.requested.length) reqArr = razmjena.requested;
+          %>
+
+          <% if (!reqArr || reqArr.length === 0) { %>
+            <div class="empty-state">Nema traženih knjiga.</div>
+          <% } else { %>
+            <div class="mini-books">
+              <% for (var i = 0; i < reqArr.length; i++) { %>
+                <% var x = reqArr[i]; %>
+
+                <%
+                  var naziv = "";
+                  var autor = "";
+                  var slika = "";
+
+                  if (x && x.book) {
+                    if (x.book.naziv) naziv = String(x.book.naziv);
+                    if (x.book.autor) autor = String(x.book.autor);
+                    if (x.book.glavnaSlikaUrl) slika = String(x.book.glavnaSlikaUrl);
+                  }
+
+                  var fallback = "";
+                  if (!naziv) {
+                    if (x && x.bookId != null) fallback = "Book ID: " + x.bookId;
+                    else fallback = "Knjiga";
+                  }
+                %>
+
+                <div class="mini-book">
+                  <div class="mini-thumb">
+                    <% if (slika) { %>
+                      <img src="<%= slika %>" alt="cover" />
+                    <% } else { %>
+                      <span class="muted">Nema slike</span>
+                    <% } %>
+                  </div>
+
+                  <div>
+                    <p class="mini-title"><%= naziv ? naziv : fallback %></p>
+                    <% if (autor) { %>
+                      <p class="mini-author"><%= autor %></p>
+                    <% } else { %>
+                      <p class="mini-author muted">—</p>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Ponuđene knjige (kupčeve) -->
+      <div class="exchange-panel">
+        <div class="head">Ponuđene knjige (kupčeve)</div>
+        <div class="body">
+          <%
+            var offArr = [];
+            if (razmjena && razmjena.offered && razmjena.offered.length) offArr = razmjena.offered;
+          %>
+
+          <% if (!offArr || offArr.length === 0) { %>
+            <div class="empty-state">Nema ponuđenih knjiga.</div>
+          <% } else { %>
+            <div class="mini-books">
+              <% for (var j = 0; j < offArr.length; j++) { %>
+                <% var y = offArr[j]; %>
+
+                <%
+                  var naziv2 = "";
+                  var autor2 = "";
+                  var slika2 = "";
+
+                  if (y && y.book) {
+                    if (y.book.naziv) naziv2 = String(y.book.naziv);
+                    if (y.book.autor) autor2 = String(y.book.autor);
+                    if (y.book.glavnaSlikaUrl) slika2 = String(y.book.glavnaSlikaUrl);
+                  }
+
+                  var fallback2 = "";
+                  if (!naziv2) {
+                    if (y && y.bookId != null) fallback2 = "Book ID: " + y.bookId;
+                    else fallback2 = "Knjiga";
+                  }
+                %>
+
+                <div class="mini-book">
+                  <div class="mini-thumb">
+                    <% if (slika2) { %>
+                      <img src="<%= slika2 %>" alt="cover" />
+                    <% } else { %>
+                      <span class="muted">Nema slike</span>
+                    <% } %>
+                  </div>
+
+                  <div>
+                    <p class="mini-title"><%= naziv2 ? naziv2 : fallback2 %></p>
+                    <% if (autor2) { %>
+                      <p class="mini-author"><%= autor2 %></p>
+                    <% } else { %>
+                      <p class="mini-author muted">—</p>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="exchange-actions">
+      <% var canManage = false; %>
+      <% if (currentUser && (currentUser.role === "Admin" || currentUser.id === razmjena.prodavacId)) { %>
+        <% canManage = true; %>
+      <% } %>
+      <% if (!currentUser) { %>
+        <div class="alert alert-error">Niste prijavljeni.</div>
+      <% } else { %>
+        <% var canManage = false; %>
+        <% if (currentUser.role === "Admin" || String(currentUser.id) === String(razmjena.prodavacId)) { %>
+          <% canManage = true; %>
+        <% } %>
+
+        <% if (!canManage) { %>
+          <div class="alert alert-error">Samo prodavac (ili admin) može mijenjati status razmjene.</div>
+        <% } else { %>
+
+          <% if (razmjena && razmjena.status === "Na_cekanju") { %>
+            <form class="inline-form" method="post" action="/seller/exchanges/<%= razmjena.id %>/status">
+              <select name="status">
+                <option value="Prihvacena">Prihvati</option>
+                <option value="Odbijena">Odbij</option>
+              </select>
+              <button class="btn btn-primary" type="submit">Sačuvaj</button>
+            </form>
+          <% } %>
+
+          <% if (razmjena && razmjena.status === "Prihvacena") { %>
+            <form class="inline-form" method="post" action="/seller/exchanges/<%= razmjena.id %>/status"
+                  onsubmit="return confirm('Označiti kao završeno?');">
+              <input type="hidden" name="status" value="Zavrsena" />
+              <button class="btn btn-primary" type="submit">Završi razmjenu</button>
+            </form>
+          <% } %>
+
+        <% } %>
+      <% } %>
+      <!-- <% if (razmjena && razmjena.status === "Na_cekanju") { %>
+        <form class="inline-form" method="post" action="/seller/exchanges/<%= razmjena.id %>/status">
+          <select name="status">
+            <option value="Prihvacena">Prihvati</option>
+            <option value="Odbijena">Odbij</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Sačuvaj</button>
+        </form>
+      <% } %> -->
+
+      <% if (razmjena && razmjena.status === "Prihvacena") { %>
+        <form class="inline-form" method="post" action="/seller/exchanges/<%= razmjena.id %>/status"
+              onsubmit="return confirm('Označiti kao završeno?');">
+          <input type="hidden" name="status" value="Zavrsena" />
+          <button class="btn btn-primary" type="submit">Završi razmjenu</button>
+        </form>
+      <% } %>
+
+      <a class="btn btn-ghost" href="/seller/exchanges">Nazad</a>
+    </div>
+
+  </div>
+</div>
+
+<%- include("../../partials/layout-bottom") %>

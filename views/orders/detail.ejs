@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
@@ -65,3 +66,148 @@
 <% } %>
 
 <p><a href="/orders">Nazad</a></p>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<%
+  var st = narudzba && narudzba.status ? String(narudzba.status) : "";
+  var tip = narudzba && narudzba.tip ? String(narudzba.tip) : "";
+  var ukupno = (narudzba && narudzba.ukupnaCijena !== undefined && narudzba.ukupnaCijena !== null) ? String(narudzba.ukupnaCijena) : "0";
+
+  var badgeCls = "badge";
+  if (st === "Na_cekanju") badgeCls = "badge badge-wait";
+  else if (st === "Prihvacena") badgeCls = "badge badge-ok";
+  else if (st === "Zavrsena") badgeCls = "badge badge-ok";
+  else if (st === "Odbijena") badgeCls = "badge badge-bad";
+  else if (st === "Otkazana") badgeCls = "badge badge-bad";
+  else badgeCls = "badge badge-warn";
+%>
+
+<div class="order-card" style="margin-top:12px;">
+  <div class="order-head">
+    <div>
+      <p class="order-title">Narudžba #<%= narudzba.id %></p>
+      <div class="order-meta">Tip: <%= tip %></div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span class="<%= badgeCls %>"><%= st %></span>
+      <span class="cart-price"><%= ukupno %> KM</span>
+      <a class="btn btn-ghost" href="/orders">Nazad</a>
+    </div>
+  </div>
+
+  <div class="order-body">
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <div class="order-grid">
+      <div>
+        <div class="section-card">
+          <div class="section-head">
+            <h2>Stavke</h2>
+          </div>
+          <div class="section-body">
+
+            <% if (!items || items.length === 0) { %>
+              <div class="empty-state">Nema stavki.</div>
+            <% } else { %>
+              <div class="order-items-mini">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Knjiga</th>
+                      <th>Cijena</th>
+                      <th>Ocijeni</th>
+                      <th>Komentar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% for (var idx = 0; idx < items.length; idx++) { %>
+                      <% var it = items[idx]; %>
+
+                      <%
+                        var cijena = it.cijenaUTrenutku;
+                        if (cijena == null) { cijena = it.cijenaUtrenutku; }
+                        if (cijena == null) { cijena = ""; }
+                      %>
+
+                      <tr>
+                        <td>
+                          <% if (it.knjiga) { %>
+                            <a href="/books/<%= it.knjiga.id %>">
+                              <%= it.knjiga.naziv %> — <%= it.knjiga.autor %>
+                            </a>
+                          <% } else { %>
+                            Book ID: <%= it.bookId %>
+                          <% } %>
+                        </td>
+
+                        <td><%= cijena %></td>
+
+                        <td>
+                          <% if (st === "Zavrsena" && it.knjiga) { %>
+                            <a class="btn btn-ghost" href="/ratings/new?orderId=<%= narudzba.id %>&bookId=<%= it.knjiga.id %>">Ocijeni</a>
+                          <% } else { %>
+                            <span class="muted">-</span>
+                          <% } %>
+                        </td>
+
+                        <td>
+                          <% if (st === "Zavrsena" && it.knjiga) { %>
+                            <a class="btn btn-ghost" href="/comments/new?orderId=<%= narudzba.id %>&bookId=<%= it.knjiga.id %>">Komentariši</a>
+                          <% } else { %>
+                            <span class="muted">-</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+
+              <p class="muted" style="margin:12px 0 0 0;">
+                Napomena: ocjena i komentar su dostupni tek nakon što narudžba bude <b>Zavrsena</b>.
+              </p>
+            <% } %>
+
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="order-summary">
+          <div class="sum-row">
+            <div class="sum-label">Status</div>
+            <div class="sum-value"><%= st %></div>
+          </div>
+          <div class="sum-row">
+            <div class="sum-label">Tip</div>
+            <div class="sum-value"><%= tip %></div>
+          </div>
+          <div class="sum-row">
+            <div class="sum-label">Ukupno</div>
+            <div class="sum-value"><%= ukupno %> KM</div>
+          </div>
+
+          <% if (st === "Na_cekanju") { %>
+            <div class="order-actions" style="margin-top:12px;">
+              <form method="post" action="/orders/<%= narudzba.id %>/cancel" onsubmit="return confirm('Otkazati narudžbu?');" class="cart-inline-form">
+                <button class="btn btn-danger" type="submit">Otkaži narudžbu</button>
+              </form>
+            </div>
+          <% } else { %>
+            <div class="muted" style="margin-top:12px;">
+              Otkazivanje je moguće samo dok je narudžba u statusu <b>Na_cekanju</b>.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

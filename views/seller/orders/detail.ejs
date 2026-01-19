@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -49,3 +50,156 @@
 <% } %>
 
 <p><a href="/seller/orders">Nazad</a></p>
+-->
+<%- include("../../partials/layout-top") %>
+
+<%
+  var st = "";
+  if (order && order.status) st = String(order.status);
+
+  var badgeCls = "badge";
+  if (st === "Na_cekanju") badgeCls = "badge badge-wait";
+  else if (st === "Prihvacena") badgeCls = "badge badge-ok";
+  else if (st === "Zavrsena") badgeCls = "badge badge-ok";
+  else if (st === "Odbijena") badgeCls = "badge badge-bad";
+  else if (st === "Otkazana") badgeCls = "badge badge-bad";
+  else badgeCls = "badge badge-warn";
+
+  var isTerminal = false;
+  if (st === "Odbijena" || st === "Otkazana" || st === "Zavrsena") isTerminal = true;
+
+  var arr = [];
+  if (items && items.length) arr = items;
+
+  var ukupnoTekst = "";
+  if (order && order.ukupnaCijena !== undefined && order.ukupnaCijena !== null) ukupnoTekst = String(order.ukupnaCijena);
+%>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/seller/orders">Narudžbe</a> / <span><%= title %></span>
+    </div>
+    <h1 style="margin:6px 0 0 0;"><%= title %></h1>
+    <p class="muted" style="margin:6px 0 0 0;">Detalji narudžbe i promjena statusa.</p>
+  </div>
+
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <span class="<%= badgeCls %>"><%= st %></span>
+    <a class="btn btn-ghost" href="/seller/orders">Nazad</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="order-card">
+  <div class="order-head">
+    <div>
+      <p class="order-title" style="margin:0;"><%= title %></p>
+      <div class="order-meta">
+        Status: <%= st %>
+      </div>
+    </div>
+    <div>
+      <span class="cart-price"><%= ukupnoTekst %> KM</span>
+    </div>
+  </div>
+
+  <div class="order-body">
+    <div class="order-grid">
+
+      <!-- Lijevo: stavke -->
+      <div>
+        <div class="order-items-mini">
+          <% if (!arr || arr.length === 0) { %>
+            <div class="empty-state" style="margin:12px;">Nema stavki.</div>
+          <% } else { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Knjiga</th>
+                  <th style="width:160px;">Cijena</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% for (var i = 0; i < arr.length; i++) { %>
+                  <% var it = arr[i]; %>
+
+                  <%
+                    var naziv = "";
+                    var autor = "";
+                    if (it && it.knjiga) {
+                      if (it.knjiga.naziv) naziv = String(it.knjiga.naziv);
+                      if (it.knjiga.autor) autor = String(it.knjiga.autor);
+                    }
+
+                    var knjigaTekst = "";
+                    if (naziv) {
+                      if (autor) knjigaTekst = naziv + " — " + autor;
+                      else knjigaTekst = naziv;
+                    } else {
+                      if (it && it.bookId != null) knjigaTekst = "Book ID: " + it.bookId;
+                      else knjigaTekst = "Knjiga";
+                    }
+
+                    var cijenaTekst = "";
+                    if (it && it.cijenaUTrenutku !== undefined && it.cijenaUTrenutku !== null) {
+                      cijenaTekst = String(it.cijenaUTrenutku);
+                    }
+                  %>
+
+                  <tr>
+                    <td><%= knjigaTekst %></td>
+                    <td><%= cijenaTekst %> KM</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Desno: summary + status -->
+      <div class="order-summary">
+        <div class="sum-row">
+          <div class="sum-label">Status</div>
+          <div class="sum-value"><span class="<%= badgeCls %>"><%= st %></span></div>
+        </div>
+
+        <div class="sum-row">
+          <div class="sum-label">Ukupno</div>
+          <div class="sum-value"><%= ukupnoTekst %> KM</div>
+        </div>
+
+        <% if (!isTerminal) { %>
+          <div style="margin-top:12px;">
+            <div class="muted" style="margin-bottom:8px;">Promijeni status</div>
+
+            <form method="post" action="/seller/orders/<%= order.id %>/status">
+              <select name="status" style="width:100%;">
+                <option value="Na_cekanju" <%= st === "Na_cekanju" ? "selected" : "" %>>Na čekanju</option>
+                <option value="Prihvacena" <%= st === "Prihvacena" ? "selected" : "" %>>Prihvaćena</option>
+                <option value="Odbijena"    <%= st === "Odbijena" ? "selected" : "" %>>Odbijena</option>
+                <option value="Zavrsena"    <%= st === "Zavrsena" ? "selected" : "" %>>Završena</option>
+              </select>
+
+              <div class="order-actions" style="margin-top:10px;">
+                <button class="btn btn-primary" type="submit">Sačuvaj</button>
+                <a class="btn btn-ghost" href="/seller/orders">Nazad</a>
+              </div>
+            </form>
+          </div>
+        <% } else { %>
+          <div style="margin-top:12px;" class="muted">
+            Narudžba je u terminalnom statusu i ne može se mijenjati.
+          </div>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<%- include("../../partials/layout-bottom") %>

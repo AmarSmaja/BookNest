@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (!razmjene || razmjene.length === 0) { %>
@@ -24,3 +25,69 @@
     </tbody>
   </table>
 <% } %>
+-->
+<%- include("../../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/seller">Seller</a> / <span><%= title %></span>
+    </div>
+    <h1 style="margin:6px 0 0 0;"><%= title %></h1>
+    <p class="muted" style="margin:6px 0 0 0;">Pregled svih razmjena koje su vezane za tvoje knjige.</p>
+  </div>
+</div>
+
+<%
+  var arr = [];
+  if (razmjene && razmjene.length) arr = razmjene;
+%>
+
+<% if (!arr || arr.length === 0) { %>
+  <div class="empty-state">Nema razmjena.</div>
+<% } else { %>
+
+  <div class="exchanges-list">
+    <% for (var i = 0; i < arr.length; i++) { %>
+      <% var r = arr[i]; %>
+
+      <%
+        var badgeCls = "badge";
+        if (r && r.status) {
+          if (r.status === "Na_cekanju") badgeCls = "badge badge-wait";
+          else if (r.status === "Prihvacena") badgeCls = "badge badge-ok";
+          else if (r.status === "Zavrsena") badgeCls = "badge badge-ok";
+          else if (r.status === "Odbijena") badgeCls = "badge badge-bad";
+          else if (r.status === "Otkazana") badgeCls = "badge badge-bad";
+          else badgeCls = "badge badge-warn";
+        }
+      %>
+
+      <div class="exchange-card">
+        <div class="exchange-head">
+          <div>
+            <p class="exchange-title" style="margin:0;">Razmjena #<%= r.id %></p>
+            <div class="exchange-meta">
+              Kupac ID: <%= r.kupacId %>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <span class="<%= badgeCls %>"><%= r.status %></span>
+            <a class="btn btn-primary" href="/seller/exchanges/<%= r.id %>">Detalji</a>
+          </div>
+        </div>
+
+        <div class="exchange-body">
+          <div class="muted">
+            Klikni “Detalji” da vidiš knjige koje su tražene/ponuđene i da promijeniš status.
+          </div>
+        </div>
+      </div>
+
+    <% } %>
+  </div>
+
+<% } %>
+
+<%- include("../../partials/layout-bottom") %>

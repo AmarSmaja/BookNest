@@ -30,8 +30,6 @@ class ExchangesController {
 
     async create(req, res) {
         try {
-            console.log("BODY: ", req.body);
-
             const requestedRaw = req.body.requestedBookIds;
             const offeredRaw = req.body.offeredBookIds || req.body["offeredBookIds[]"];
 
@@ -66,6 +64,9 @@ class ExchangesController {
                 requestedBookIds,
                 offeredBookIds
             );
+
+            console.log("Kreirana razmjena: ", razmjena.id, "kupacId: ", razmjena.kupacId, ", prodavacId: ", razmjena.prodavacId);
+            console.log("CHANGE STATUS req user:", req.session.user.id, req.session.user.role, "exchange:", req.params.id, "status:", req.body.status);
 
             return res.redirect(`/exchanges/${razmjena.id}`);
         } catch (e) {

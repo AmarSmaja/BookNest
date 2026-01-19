@@ -1,26 +1,45 @@
-const User = require("../models/users/User");
+const db = require("../models");
 
 class UserDao {
-    async findByEmail(email) {
-        return User.findOne({ where: { email } });
+    findByEmail(email, t) {
+        const opts = { where: { email: email } };
+        if (t) opts.transaction = t;
+        return db.User.findOne(opts);
     }
 
-    async findById(id) {
-        return User.findByPk(id);
+    findById(id, t) {
+        const opts = {};
+        if (t) opts.transaction = t;
+        return db.User.findByPk(id, opts);
     }
 
-    async create(data) {
-        return User.create(data);
+    findPublicById(id, t) {
+        const opts = { attributes: ["id", "ime", "prezime", "role", "createdAt", "updatedAt", "profileImageUrl"], };
+        if (t) opts.transaction = t;
+        return db.User.findByPk(id, opts);
     }
 
-    async listAll() {
-        return User.findAll({ order: [["id", "ASC"]] });
+    create(data, t) {
+        if (t) return db.User.create(data, { transaction: t });
+        return db.User.create(data);
     }
 
-    async updateById(id, patch) {
-        const user = await User.findByPk(id);
+    listAll(t) {
+        const opts = { order: [["id", "ASC"]] };
+        if (t) opts.transaction = t;
+        return db.User.findAll(opts);
+    }
+
+    async updateById(id, patch, t) {
+        const user = await this.findById(id, t);
         if (!user) return null;
-        return user.update(patch);
+        return user.update(patch, t ? { transaction: t } : undefined);
+    }
+
+    findWithPasswordById(id, t) {
+        const opts = { attributes: ["id", "passwordHash"] };
+        if (t) opts.transaction = t;
+        return db.User.findByPk(id, opts);
     }
 }
 

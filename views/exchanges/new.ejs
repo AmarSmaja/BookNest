@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -30,3 +31,117 @@
     <a href="/books/<%= requestedBook.id %>">Nazad</a>
   </div>
 </form>
+-->
+
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<%
+  var rbNaziv = "";
+  var rbAutor = "";
+  var rbId = "";
+
+  if (requestedBook) {
+    if (requestedBook.naziv != null) rbNaziv = String(requestedBook.naziv);
+    if (requestedBook.autor != null) rbAutor = String(requestedBook.autor);
+    if (requestedBook.id != null) rbId = String(requestedBook.id);
+  }
+
+  var booksArr = [];
+  if (myBooks && myBooks.length) booksArr = myBooks;
+%>
+
+<div class="section-card" style="margin-top:12px;">
+  <div class="section-head">
+    <h2>Nova razmjena</h2>
+  </div>
+
+  <div class="section-body">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="muted" style="margin-bottom:6px;">Tražena knjiga</div>
+      <div style="font-weight:900; font-size:15px;">
+        <%= rbNaziv %>
+      </div>
+      <div class="muted" style="margin-top:4px;">
+        <%= rbAutor %> | ID: <%= rbId %>
+      </div>
+    </div>
+
+    <form method="post" action="/exchanges">
+      <input type="hidden" name="requestedBookIds" value="<%= rbId %>">
+
+      <div class="section-card" style="margin-top:12px;">
+        <div class="section-head">
+          <h3>Odaberi svoje knjige koje nudiš</h3>
+        </div>
+
+        <div class="section-body">
+          <% if (!booksArr || booksArr.length === 0) { %>
+            <div class="empty-state">
+              Nemaš knjiga za ponuditi. Dodaj knjige kao prodavač pa onda možeš slati razmjenu.
+            </div>
+          <% } else { %>
+
+            <div class="check-grid">
+              <% for (var i = 0; i < booksArr.length; i++) { %>
+                <%
+                  var b = booksArr[i];
+
+                  var bid = "";
+                  var naziv = "";
+                  var autor = "";
+                  var slika = "";
+
+                  if (b) {
+                    if (b.id != null) bid = String(b.id);
+                    if (b.naziv != null) naziv = String(b.naziv);
+                    if (b.autor != null) autor = String(b.autor);
+                    if (b.glavnaSlikaUrl) slika = String(b.glavnaSlikaUrl);
+                  }
+                %>
+
+                <label class="check-item" style="cursor:pointer;">
+                  <input type="checkbox" name="offeredBookIds[]" value="<%= bid %>">
+                  <div style="display:flex; gap:10px; align-items:center; min-width:0;">
+                    <div class="mini-thumb" style="flex:0 0 auto;">
+                      <% if (slika) { %>
+                        <img src="<%= slika %>" alt="cover" />
+                      <% } else { %>
+                        <span class="muted">Nema</span>
+                      <% } %>
+                    </div>
+
+                    <div style="min-width:0;">
+                      <div style="font-weight:900; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        <%= naziv %>
+                      </div>
+                      <div class="muted" style="font-size:12px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        <%= autor %> | ID: <%= bid %>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              <% } %>
+            </div>
+
+            <p class="muted" style="margin:10px 0 0 0;">
+              Označi barem jednu svoju knjigu koju nudiš.
+            </p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="detail-actions" style="margin-top:14px;">
+        <button class="btn btn-primary" type="submit">Pošalji zahtjev</button>
+        <a class="btn btn-ghost" href="/books/<%= rbId %>">Nazad</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

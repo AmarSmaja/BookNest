@@ -22,7 +22,7 @@ class BooksController {
             vidljivo = false;
 
             if (currentUser) {
-                if (currentUser === "Admin") vidljivo = true;
+                if (currentUser && currentUser.role === "Admin") vidljivo = true;
                 if (currentUser.id === knjiga.prodavacId) vidljivo = true;
 
                 if (!vidljivo) {
@@ -56,7 +56,7 @@ class BooksController {
         if (currentUser) {
             const nijeMoja = (currentUser.id !== knjiga.prodavacId);
             const aktivna = (knjiga.status === "Aktivna");
-            const exchangeable = (knjiga.spremnaZaRazmjenu === true);
+            const exchangeable = (knjiga.spremnaZaRazmjenu === true || knjiga.spremnaZaRazmjenu === 1 || knjiga.spremnaZaRazmjenu === "1" || knjiga.spremnaZaRazmjenu === "true");
 
             if (nijeMoja && aktivna) {
                 canBuy = true;
@@ -65,12 +65,10 @@ class BooksController {
 
                 if (exchangeable) {
                     canExchange = true;
+                    console.log(knjiga.spremnaZaRazmjenu, typeof knjiga.spremnaZaRazmjenu);
                 }
             }
-
-            // if (nijeMoja) {
-            //     canChat = true;
-            // }
+            console.log(knjiga.spremnaZaRazmjenu, typeof knjiga.spremnaZaRazmjenu);
         }
 
         let isAdmin = false;

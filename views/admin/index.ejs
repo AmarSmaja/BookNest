@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -21,3 +22,105 @@
 </ul>
 
 <p><a href="/">Nazad na aplikaciju</a></p>
+-->
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">Admin</div>
+    <h1 style="margin:6px 0 0 0;"><%= title %></h1>
+    <p class="muted" style="margin:6px 0 0 0;">Centralni pregled stanja sistema i brzi ulaz u admin module.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin/users">Korisnici</a>
+    <a class="btn btn-ghost" href="/admin/lookups/genres">Lookups</a>
+    <a class="btn btn-ghost" href="/admin/stats">Statistika</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="books-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin-top: 12px;">
+  <div class="section-card">
+    <div class="section-head">
+      <h3>Zahtjevi za prodavača</h3>
+    </div>
+    <div class="section-body">
+      <div class="muted">PENDING</div>
+      <div style="font-size:28px; font-weight:950; margin-top:6px;">
+        <%= overview.pendingSeller %>
+      </div>
+      <div class="detail-actions" style="margin-top:12px;">
+        <a class="btn btn-primary" href="/admin/seller-requests">Otvori</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>Reportovi</h3>
+    </div>
+    <div class="section-body">
+      <div class="muted">Otvoreni reportovi</div>
+      <div style="font-size:28px; font-weight:950; margin-top:6px;">
+        <%= overview.openReports %>
+      </div>
+      <div class="detail-actions" style="margin-top:12px;">
+        <a class="btn btn-primary" href="/admin/reports">Otvori</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>Korisnici</h3>
+    </div>
+    <div class="section-body">
+      <div class="muted">Ukupno korisnika</div>
+      <div style="font-size:28px; font-weight:950; margin-top:6px;">
+        <%= overview.totalUsers %>
+      </div>
+      <div class="detail-actions" style="margin-top:12px;">
+        <a class="btn btn-ghost" href="/admin/users">Upravljaj</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>Knjige</h3>
+    </div>
+    <div class="section-body">
+      <div class="muted">Ukupno knjiga</div>
+      <div style="font-size:28px; font-weight:950; margin-top:6px;">
+        <%= overview.totalBooks %>
+      </div>
+      <div class="detail-actions" style="margin-top:12px;">
+        <a class="btn btn-ghost" href="/catalog">Katalog</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card" style="margin-top:14px;">
+  <div class="section-head">
+    <h3>Moduli</h3>
+  </div>
+  <div class="section-body">
+    <div style="display:flex; flex-wrap:wrap; gap:10px;">
+      <a class="btn btn-primary" href="/admin/seller-requests">Zahtjevi za prodavača</a>
+      <a class="btn btn-primary" href="/admin/reports">Reportovi</a>
+      <a class="btn btn-ghost" href="/admin/lookups/genres">Lookups</a>
+      <a class="btn btn-ghost" href="/admin/stats">Statistika</a>
+    </div>
+
+    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.10); margin:14px 0;" />
+
+    <a class="btn btn-ghost" href="/">Nazad na aplikaciju</a>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

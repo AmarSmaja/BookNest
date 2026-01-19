@@ -2,58 +2,41 @@ const cartDao = require("../dao/CartDao");
 const db = require("../models");
 
 class CartService {
-    async addToCart(user, { bookId }) {
-        const id = Number(bookId);
-        if (!Number.isFinite(id) || id <= 0) throw new Error("Neispravna knjiga!");
+    async addToCart(user, body) {
+        if (!user || !user.id) throw new Error("Niste prijavljeni.");
 
-        const knjiga = await db.Book.findByPk(id);
-        if (!knjiga) throw new Error("Knjiga ne postoji!");
+        const bookId = Number(body?.bookId);
+        if (!Number.isFinite(bookId) || bookId <= 0) throw new Error("Neispravan bookId!");
 
-        if (knjiga.status !== "Aktivna") throw new Error("Knjiga nije dostupna!");
-        if (knjiga.prodavacId === user.id) throw new Error("Ne mozes kupiti svoju knjigu!");
+        const qty = body?.kolicina != null ? Number(body.kolicina) : 1;
+        const kolicina = Number.isFinite(qty) && qty > 0 ? qty : 1;
 
-        var stanje = Number(knjiga.kolicinaDostupno);
-        if (!Number.isFinite(stanje)) stanje = 0;
-
-        if (stanje <= 0) throw new Error("Knjiga nije na stanju!");
-
-        const cart = await cartDao.getOrCreateCart(user.id);
-
-        const postoji = await db.CartItem.findOne({ where: { cartId: cart.id, bookId: id } });
-
-        let trenutnoUCartu = 0;
-        if (postoji) {
-            trenutnoUCartu = Number(postoji.kolicina);
-            if (!Number.isFinite(trenutnoUCartu)) trenutnoUCartu = 0;
-        }
-
-        if (trenutnoUCartu >= stanje) throw new Error("Nema vise primjeraka na stanju za ovu knjigu!");
-
-        await cartDao.addItem(user.id, id, 1);
+        return cartDao.addItem(user.id, bookId, kolicina);
     }
 
     async viewCart(user) {
-        const rezultat = await cartDao.getCartView(user.id);
-        const items = rezultat.items;
+        if (!user || !user.id) throw new Error("Niste prijavljeni.");
 
-        let safe = [];
+        const data = await cartDao.getCartView(user.id);
+        const items = data && Array.isArray(data.items) ? data.items : [];
+
         let ukupno = 0;
-
-        for (let i = 0; i < items.length; i++) {
-            let r = items[i];
-            if (r.book) {
-                safe.push(r);
-                ukupno += Number(r.book.cijena) * Number(r.kolicina);
-            }
+        for (const it of items) {
+        const cijena = Number(it?.book?.cijena ?? 0);
+        const kolicina = Number(it?.kolicina ?? 0);
+        ukupno += cijena * kolicina;
         }
 
-        return { items: safe, ukupno: ukupno };
+        return { items, ukupno };
     }
 
     async removeItem(user, cartItemId) {
+        if (!user || !user.id) throw new Error("Niste prijavljeni.");
+
         const id = Number(cartItemId);
-        if (!Number.isFinite(id) || id <= 0) return;
-        await cartDao.removeItem(user.id, id);
+        if (!Number.isFinite(id) || id <= 0) throw new Error("Neispravan cartItemId.");
+
+        return cartDao.removeItem(user.id, id);
     }
 }
 

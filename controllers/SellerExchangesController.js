@@ -3,13 +3,15 @@ const sellerExchangesService = require("../services/SellerExchangesService");
 class SellerExchangesController {
     async list(req, res) {
         const razmjene = await sellerExchangesService.izlistajMoje(req.session.user);
+        console.log("SELLER EXCHANGES LIST user:", req.session.user.id, req.session.user.role);
         res.render("seller/exchanges/list", { title: "Razmjene (moje knjige)", razmjene, error: null });
     }
 
     async detail(req, res) {
-        const data = await sellerExchangesService.getDetail(req.session.user, req.params.id);
-        if (!data) return res.status(404).send("Razmjena nije pronadjena!");
-        res.render("seller/exchanges/detail", { title: `Razmjena #${data.id}`, razmjena: data, error: null });
+        const data = await sellerExchangesService.detailForSeller(req.session.user, req.params.id);
+        if (!data || !data.razmjena) return res.status(404).send("Razmjena nije pronadjena!");
+
+        res.render("seller/exchanges/detail", { title: `Razmjena #${data.razmjena.id}`, razmjena: data.razmjena, currentUser: req.session.user, error: null });
     }
 
     async accept(req, res) {

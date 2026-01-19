@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -17,3 +18,59 @@
 
   <button type="submit">Pošalji zahtjev</button>
 </form>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<div class="card" style="margin-top:12px;">
+  <p class="muted" style="margin:0 0 12px 0;">
+    Pošalji zahtjev za ulogu prodavca.
+  </p>
+
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
+  <form method="post" action="/seller/apply">
+    <div class="form-grid">
+
+      <div class="form-row">
+        <label for="cityId">Grad</label>
+        <select id="cityId" name="cityId" required>
+          <option value="">-- odaberi --</option>
+
+          <% (cities || []).forEach(c => { %>
+            <%
+              var cid = c.id;
+              var cname = c.naziv || c.name || ("Grad #" + c.id);
+              var selected = (values && values.cityId != null && String(values.cityId) === String(cid));
+            %>
+            <option value="<%= cid %>" <%= selected ? "selected" : "" %>><%= cname %></option>
+          <% }) %>
+
+        </select>
+        <div class="form-hint">Odaberi grad iz liste.</div>
+      </div>
+
+      <div class="form-row">
+        <label for="profileImageUrl">Profilna slika URL</label>
+        <input
+          id="profileImageUrl"
+          type="text"
+          name="profileImageUrl"
+          value="<%= (values && values.profileImageUrl != null) ? values.profileImageUrl : '' %>"
+          placeholder="https://..."
+        />
+      </div>
+
+      <div class="form-actions" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" href="/">Otkaži</a>
+        <button class="btn btn-primary" type="submit">Pošalji zahtjev</button>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<%- include("../partials/layout-bottom") %>

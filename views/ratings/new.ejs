@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -30,3 +31,59 @@
 </form>
 
 <p><a href="/orders/<%= orderId %>">Nazad</a></p>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<div class="card" style="margin-top:12px;">
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+    <div>
+      <h2 style="margin:0 0 6px 0;">Ocjena</h2>
+
+      <p class="muted" style="margin:0;">
+        <strong>Knjiga:</strong>
+        <% if (knjiga) { %>
+          <%= knjiga.naziv %> — <%= knjiga.autor %>
+        <% } else { %>
+          ID: <%= bookId %>
+        <% } %>
+      </p>
+    </div>
+
+    <% if (orderId !== undefined && orderId !== null) { %>
+      <a class="btn btn-ghost" href="/orders/<%= orderId %>">Nazad</a>
+    <% } else { %>
+      <a class="btn btn-ghost" href="/orders">Nazad</a>
+    <% } %>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-error" style="margin-top:12px;"><%= error %></div>
+  <% } %>
+
+  <form method="post" action="/ratings" style="margin-top:12px;">
+    <input type="hidden" name="orderId" value="<%= orderId %>">
+    <input type="hidden" name="bookId" value="<%= bookId %>">
+
+    <div class="form-grid">
+      <div class="form-row">
+        <label for="ocjena">Ocjena</label>
+        <select id="ocjena" name="ocjena" required>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+        </select>
+        <div class="form-hint">Odaberi ocjenu od 1 do 5.</div>
+      </div>
+
+      <div class="form-actions" style="justify-content:flex-end;">
+        <button class="btn btn-primary" type="submit">Sačuvaj</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%- include("../partials/layout-bottom") %>

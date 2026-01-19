@@ -113,69 +113,158 @@ class ExchangeService {
         })
     }
 
-    async createExchangeFromBooks(user, requestedBookIds, offeredBookIds) {
-        const requestedIds = uniqueIntovi(requestedBookIds);
-        const offeredIds = uniqueIntovi(offeredBookIds);
+    // async createExchangeFromBooks(user, requestedBookIds, offeredBookIds) {
+    //     const requestedIds = uniqueIntovi(requestedBookIds);
+    //     const offeredIds = uniqueIntovi(offeredBookIds);
 
-        if (requestedIds.length === 0) throw new Error("Moras odabrati bar jednu trazenu knjigu!");
-        if (offeredIds.length === 0) throw new Error("Moras odabrati bar jednu knjigu koju nudis!");
+    //     if (requestedIds.length === 0) throw new Error("Moras odabrati bar jednu trazenu knjigu!");
+    //     if (offeredIds.length === 0) throw new Error("Moras odabrati bar jednu knjigu koju nudis!");
+
+    //     return db.sequelize.transaction(async (t) => {
+    //         const trazeneKnjige = await db.Book.findAll({
+    //             where: { id: requestedIds },
+    //             transaction: t,
+    //         });
+
+    //         if (trazeneKnjige.length !== requestedIds.length) throw new Error("Neka trazena knjiga ne postoji!");
+
+    //         const sellerId = trazeneKnjige[0].prodavacId;
+    //         if (!sellerId) throw new Error("Trazena knjiga nema prodavaca!");
+    //         if (sellerId === user.id) throw new Error("Ne mozes traziti razmjenu za svoju knjigu!");
+
+    //         for (const b of trazeneKnjige) {
+    //             if (b.prodavacId !== sellerId) throw new Error(`Sve knjige moraju biti od istog prodavaca!`);
+    //             if (b.status !== "Aktivna") throw new Error(`Knjiga ${b.naziv} nije dostupna!`);
+    //             if (!b.spremnaZaRazmjenu) throw new Error(`Knjiga ${b.naziv} nije spremna za razmjenu!`);
+    //         }
+
+    //         const ponudjeneKnjige = await db.Book.findAll({
+    //             where: { id: offeredIds, prodavacId: user.id },
+    //             transaction: t,
+    //         });
+
+    //         if (ponudjeneKnjige.length !== offeredIds.length) throw new Error("Mozes nuditi samo svoje knjige koje ti pripadaju kao prodavacu!");
+
+    //         for (const b of ponudjeneKnjige) {
+    //             if (b.status !== "Aktivna") throw new Error(`Knjiga ${b.naziv} nije aktivna!`);
+    //             if (!b.spremnaZaRazmjenu) throw new Error(`Knjiga ${b.naziv} nije spremna za razmjenu!`);
+    //         }
+
+    //         const zahtjevRazmjene = await exchangeDao.createRequest({ kupacId: user.id, prodavacId: sellerId, status: STATUS.NACEKANJU }, t );
+
+    //         await exchangeDao.addRequested(zahtjevRazmjene.id, requestedIds, t);
+    //         await exchangeDao.addOffered(zahtjevRazmjene.id, offeredIds, t);
+
+    //         const allIds = [];
+    //         for (let i = 0; i < requestedIds.length; i++) allIds.push(requestedIds[i]);
+    //         for (let i = 0; i < offeredIds.length; i++) allIds.push(offeredIds[i]);
+
+    //         const allBookIds = uniqueIntovi(allIds);
+
+    //         await db.Book.update(
+    //             { status: "Rezervisana" },
+    //             { where: { id: allBookIds }, transaction: t }
+    //         );
+
+    //         await notificationDao.create({
+    //             userId: sellerId,
+    //             tip: "Nova_razmjena",
+    //             payloadJson: {
+    //                 exchangeId: zahtjevRazmjene.id,
+    //                 kupacId: user.id,
+    //             },
+    //         }, t);
+
+    //         return zahtjevRazmjene;
+    //     });
+    // }
+
+    async createExchangeFromBooks(user, requestedBookIds, offeredBookIds) {
+        if (!user || !user.id) throw new Error("Nisi logovan!");
+        
+        var reqIds = [];
+        if (Array.isArray(requestedBookIds)) {
+            for (let i = 0; i < requestedBookIds.length; i++) {
+                let n = Number(requestedBookIds[i]);
+                if (!isNaN(n) && n > 0) reqIds.push(n);
+            }
+        } else {
+            let n1 = Number(requestedBookIds);
+            if (!isNaN(n1) && n1 > 0) reqIds.push(n1);
+        }
+
+        let offIds = [];
+        if (Array.isArray(offeredBookIds)) {
+            for (let j = 0; j < offeredBookIds.length; j++) {
+                let m = Number(offeredBookIds[j]);
+                if (!isNaN(m) && m > 0) offIds.push(m);
+            }
+        } else {
+            let m1 = Number(offeredBookIds);
+            if (!isNaN(m1) && m1 > 0) offIds.push(m1);
+        }
+
+        if (reqIds.length === 0) throw new Error("Nisi stavio trazenu knjigu!");
+        if (offIds.length === 0) throw new Error("Moras odabrati bar jednu knjigu koju nudis!");
+
+        let trazene = await db.Book.findAll({ where: { id: reqIds } });
+        if (!trazene || trazene.length === 0) throw new Error("Trazena knjiga ne postoji!");
+        if (trazene.length !== reqIds.length) throw new Error("Jedna ili vise trazenih knjiga ne postoji!");
+        
+        let sellerId = null;
+
+        for (let a = 0; a < trazene.length; a++) {
+            let bk = trazene[a];
+
+            if (!bk) throw new Error("Neispravna trazena knjiga!");
+            if (bk.prodavacId == null) throw new Error("Trazena knjiga nema prodavaca!");
+
+            if (Number(bk.prodavacId) === Number(user.id)) throw new Error("Ne mozes traziti vlastitu knjigu!");
+            if (bk.status !== "Aktivna") throw new Error("Trazena knjiga nije aktivna!");
+
+            if (sellerId == null) {
+                sellerId = Number(bk.prodavacId);
+            } else {
+                if (Number(bk.prodavacId) !== Number(sellerId)) {
+                    throw new Error("Sve trazene knjige moraju biti od istog prodavaca!");
+                }
+            }
+        }
+
+        if (!Number.isFinite(sellerId) || sellerId <= 0) throw new Error("Ne moze se odrediti prodavac za trazene knjige!");
+
+        let ponudjene = await db.Book.findAll({ where: { id: offIds, prodavacId: user.id } });
+
+        if (!ponudjene || ponudjene.length === 0) throw new Error("Nemas validnih knjiga za ponuditi!");
+        if (ponudjene.length !== offIds.length) throw new Error("Jedna ili vise ponudjenih knjiga nije tvoja ili ne postoji!");
+        
+        for (let b = 0; b < ponudjene.length; b++) {
+            let ob = ponudjene[b];
+            if (!ob) throw new Error("Neispravna ponudjena knjiga!");
+            if (ob.status !== "Aktivna") throw new Error("Ponudjena knjiga mora biti aktivna!");
+        }
 
         return db.sequelize.transaction(async (t) => {
-            const trazeneKnjige = await db.Book.findAll({
-                where: { id: requestedIds },
-                transaction: t,
-            });
+            let razmjena = await exchangeDao.createRequest({ kupacId: user.id, prodavacId: sellerId, status: "Na_cekanju", zavrsenaAt: null }, t);
 
-            if (trazeneKnjige.length !== requestedIds.length) throw new Error("Neka trazena knjiga ne postoji!");
+            await exchangeDao.addRequested(razmjena.id, reqIds, t);
+            await exchangeDao.addOffered(razmjena.id, offIds, t);
 
-            const sellerId = trazeneKnjige[0].prodavacId;
-            if (!sellerId) throw new Error("Trazena knjiga nema prodavaca!");
-            if (sellerId === user.id) throw new Error("Ne mozes traziti razmjenu za svoju knjigu!");
+            let allIds = [];
+            for (let x = 0; x < reqIds.length; x++) allIds.push(reqIds[x]);
+            for (let y = 0; y < offIds.length; y++) allIds.push(offIds[y]);
 
-            for (const b of trazeneKnjige) {
-                if (b.prodavacId !== sellerId) throw new Error(`Sve knjige moraju biti od istog prodavaca!`);
-                if (b.status !== "Aktivna") throw new Error(`Knjiga ${b.naziv} nije dostupna!`);
-                if (!b.spremnaZaRazmjenu) throw new Error(`Knjiga ${b.naziv} nije spremna za razmjenu!`);
+            if (allIds.length > 0) {
+                await db.Book.update(
+                    { status: "Rezervisana" },
+                    { where: { id: allIds }, transaction: t }
+                );
             }
 
-            const ponudjeneKnjige = await db.Book.findAll({
-                where: { id: offeredIds, prodavacId: user.id },
-                transaction: t,
-            });
+            await notificationDao.create({ userId: sellerId, tip: "Nova_razmjena", payloadJson: { exchangeId: razmjena.id, buyerId: user.id } }, t);
+            await notificationDao.create({ userId: user.id, tip: "Nova_razmjena", payloadJson: { exchangeId: razmjena.id, sellerId: sellerId } }, t);
 
-            if (ponudjeneKnjige.length !== offeredIds.length) throw new Error("Mozes nuditi samo svoje knjige koje ti pripadaju kao prodavacu!");
-
-            for (const b of ponudjeneKnjige) {
-                if (b.status !== "Aktivna") throw new Error(`Knjiga ${b.naziv} nije aktivna!`);
-                if (!b.spremnaZaRazmjenu) throw new Error(`Knjiga ${b.naziv} nije spremna za razmjenu!`);
-            }
-
-            const zahtjevRazmjene = await exchangeDao.createRequest({ kupacId: user.id, prodavacId: sellerId, status: STATUS.NACEKANJU }, t );
-
-            await exchangeDao.addRequested(zahtjevRazmjene.id, requestedIds, t);
-            await exchangeDao.addOffered(zahtjevRazmjene.id, offeredIds, t);
-
-            const allIds = [];
-            for (let i = 0; i < requestedIds.length; i++) allIds.push(requestedIds[i]);
-            for (let i = 0; i < offeredIds.length; i++) allIds.push(offeredIds[i]);
-
-            const allBookIds = uniqueIntovi(allIds);
-
-            await db.Book.update(
-                { status: "Rezervisana" },
-                { where: { id: allBookIds }, transaction: t }
-            );
-
-            await notificationDao.create({
-                userId: sellerId,
-                tip: "Nova_razmjena",
-                payloadJson: {
-                    exchangeId: zahtjevRazmjene.id,
-                    kupacId: user.id,
-                },
-            }, t);
-
-            return zahtjevRazmjene;
+            return razmjena;
         });
     }
 

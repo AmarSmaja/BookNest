@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <div style="margin: 10px 0;">
@@ -52,3 +53,108 @@
     <% } %>
   </table>
 <% } %>
+-->
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">Admin</div>
+    <h1 style="margin:6px 0 0 0;"><%= title %></h1>
+    <p class="muted" style="margin:6px 0 0 0;">Upravljanje lookup tabelama (žanrovi, jezici, stanja, tagovi, gradovi).</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin/users">Korisnici</a>
+    <a class="btn btn-ghost" href="/admin/stats">Statistika</a>
+  </div>
+</div>
+
+<div class="filters-card">
+  <div class="filters-head">
+    <h2>Lookup kategorije</h2>
+    <div class="muted">Odaberi šta uređuješ</div>
+  </div>
+  <div class="filters-body">
+    <div style="display:flex; flex-wrap:wrap; gap:10px;">
+      <a class="btn <%= type === 'genres' ? 'btn-primary' : 'btn-ghost' %>" href="/admin/lookups/genres">Žanrovi</a>
+      <a class="btn <%= type === 'languages' ? 'btn-primary' : 'btn-ghost' %>" href="/admin/lookups/languages">Jezici</a>
+      <a class="btn <%= type === 'conditions' ? 'btn-primary' : 'btn-ghost' %>" href="/admin/lookups/conditions">Stanja</a>
+      <a class="btn <%= type === 'tags' ? 'btn-primary' : 'btn-ghost' %>" href="/admin/lookups/tags">Tagovi</a>
+      <a class="btn <%= type === 'cities' ? 'btn-primary' : 'btn-ghost' %>" href="/admin/lookups/cities">Gradovi</a>
+    </div>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="section-card" style="margin-top:14px;">
+  <div class="section-head">
+    <h3>Dodaj novi zapis</h3>
+  </div>
+  <div class="section-body">
+    <form method="post" action="/admin/lookups/<%= type %>/create">
+      <div class="filters-grid" style="grid-template-columns: 1fr auto;">
+        <div class="filters-row">
+          <label>Naziv</label>
+          <input name="naziv" placeholder="Unesi naziv..." required />
+        </div>
+        <div style="display:flex; align-items:flex-end; justify-content:flex-end;">
+          <button class="btn btn-primary" type="submit">Dodaj</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="section-card" style="margin-top:14px;">
+  <div class="section-head">
+    <h3>Postojeći zapisi</h3>
+  </div>
+
+  <div class="section-body">
+    <% if (!rows || rows.length === 0) { %>
+      <div class="empty-state">Nema zapisa.</div>
+    <% } else { %>
+
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:90px;">ID</th>
+              <th>Naziv</th>
+              <th style="width:140px;">Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (var i = 0; i < rows.length; i++) { %>
+              <tr>
+                <td><%= rows[i].id %></td>
+
+                <td>
+                  <form method="post" action="/admin/lookups/<%= type %>/<%= rows[i].id %>/update" style="display:flex; gap:10px; align-items:center;">
+                    <input name="naziv" value="<%= rows[i].naziv %>" required style="width:100%; max-width:520px;" />
+                    <button class="btn btn-ghost" type="submit">Sačuvaj</button>
+                  </form>
+                </td>
+
+                <td>
+                  <form method="post"
+                        action="/admin/lookups/<%= type %>/<%= rows[i].id %>/delete"
+                        onsubmit="return confirm('Obrisati zapis?');"
+                        style="display:inline-block;">
+                    <button class="btn btn-danger" type="submit">Obriši</button>
+                  </form>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+    <% } %>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

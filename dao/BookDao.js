@@ -398,7 +398,8 @@ class BookDao {
                 l.naziv AS "jezikNaziv",
                 bc.naziv AS "stanjeNaziv",
                 u.ime AS "prodavacIme",
-                u.prezime AS "prodavacPrezime"
+                u.prezime AS "prodavacPrezime",
+                b.is_exchangeable AS "spremnaZaRazmjenu"
             FROM books b
             JOIN genres g ON g.id = b.genre_id
             JOIN languages l ON l.id = b.language_id

@@ -1484,3 +1484,69 @@ tr:hover td { background: rgba(255,255,255,0.03); }
   border-color: rgba(200, 45, 45, 0.40);
   color: rgba(255, 230, 230, 0.95);
 }
+
+/* Book edit/create form - namespaced to avoid breaking auth forms */
+.bookform-card{
+  border: 1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+  padding: 16px;
+}
+
+.bookform-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bookform-span-2{ grid-column: 1 / span 2; }
+
+@media (max-width: 780px){
+  .bookform-grid{ grid-template-columns: 1fr; }
+  .bookform-span-2{ grid-column: auto; }
+}
+
+.bookform-label{
+  display: block;
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: rgba(231,238,252,0.90);
+}
+
+.bookform-input, .bookform-select, .bookform-textarea{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(10,14,24,0.35);
+  color: rgba(231,238,252,0.95);
+  outline: none;
+}
+
+.bookform-input:focus, .bookform-select:focus, .bookform-textarea:focus{
+  border-color: rgba(79,140,255,0.45);
+  box-shadow: 0 0 0 3px rgba(79,140,255,0.14);
+}
+
+.bookform-textarea{ resize: vertical; }
+
+.bookform-help{
+  margin-top: 6px;
+  color: rgba(231,238,252,0.70);
+  font-size: 12px;
+}
+
+.bookform-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.site-header .container {
+  max-width: none;
+  width: 100%;
+  padding: 0 16px;
+}

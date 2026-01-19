@@ -1,44 +1,65 @@
-<header class="site-header">
-  <div class="container nav">
-    <a class="brand" href="/">BookNest</a>
+<!doctype html>
+<html lang="bs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= typeof title !== "undefined" ? title : "BookNest" %></title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <style>
+    .user-pill .user-name {
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .user-pill .user-name:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="nav">
+        <a class="brand" href="/">BookNest</a>
 
-    <nav class="nav-links">
-      <a href="/catalog">Knjige</a>
+        <div class="nav-links">
+          <a href="/catalog">Knjige</a>
+          <a href="/cart">Korpa</a>
+          <a href="/seller/orders">Narudžbe</a>
+          <a href="/seller/exchanges">Razmjene</a>
+          <a href="/notifications">Notifikacije</a>
+          <a href="/chat">Chat</a>
+          <a href="/seller/books">Seller</a>
+          <a href="/admin">Admin</a>
 
-      <% if (user) { %>
-        <a href="/cart">Korpa</a>
-        <a href="/orders">Narudžbe</a>
-        <a href="/exchanges">Razmjene</a>
-        <a href="/notifications">Notifikacije</a>
-        <a href="/chat">Chat</a>
-      <% } %>
-
-      <% if (isSeller || isAdmin) { %>
-        <a href="/seller/books">Seller</a>
-      <% } %>
-
-      <% if (isAdmin) { %>
-        <a href="/admin/stats">Admin Stats</a>
-        <a href="/admin/lookups/genres">Lookups</a>
-        <a href="/admin/users">Users</a>
-      <% } %>
-    </nav>
-
-    <div class="nav-actions">
-      <% if (!user) { %>
-        <a class="btn btn-ghost" href="/auth/login">Login</a>
-        <a class="btn btn-primary" href="/auth/register">Registracija</a>
-      <% } else { %>
-        <div class="user-pill">
-          <span class="user-name"><%= user.ime %> <%= user.prezime %></span>
-
-          <% if (isBuyer) { %>
-            <a class="btn btn-ghost" href="/users/interests">Moji interesi</a>
+          <% if (user && (user.role === "Prodavac" || user.role === "Admin")) { %>
+            <a href="/seller/books">Moje knjige</a>
           <% } %>
 
-          <a class="btn btn-ghost" href="/auth/logout">Logout</a>
+          <% if (user && (user.role === "Kupac")) { %>
+            <a href="/seller/apply">Postani Prodavac!</a>
+          <% } %>
         </div>
-      <% } %>
+
+        <div class="nav-actions">
+          <% if (!user) { %>
+            <a class="btn btn-ghost" href="/auth/login">Login</a>
+            <a class="btn btn-primary" href="/auth/register">Registracija</a>
+          <% } else { %>
+            <div class="user-pill">
+              <a class="user-name" href="/users/me" title="Moj profil"><%= user.ime %> <%= user.prezime %></a>
+
+              <% if (isBuyer) { %>
+                <a class="btn btn-ghost" href="/users/interests">Moji interesi</a>
+              <% } %>
+
+              <a class="btn btn-ghost" href="/auth/logout">Logout</a>
+            </div>
+          <% } %>
+        </div>
+
+      </div>
     </div>
-  </div>
-</header>
+  </header>
+
+  <main class="content">
+    <div class="container">

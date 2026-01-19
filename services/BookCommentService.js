@@ -5,7 +5,7 @@ const notificationDao = require("../dao/NotificationDao");
 class BookCommentService {
     async ostaviKomentarZaNarudzbu(user, orderId, bookId, sadrzaj) {
         if (!user) throw new Error("Nisi logovan!");
-        if (user.role !== "Kupac") throw new Error("Samo kupac moze ostaviti komentar!");
+        // if (user.role !== "Kupac") throw new Error("Samo kupac moze ostaviti komentar!");
 
         const oid = Number(orderId);
         if (!Number.isFinite(oid)) throw new Error("Neispravan ID narudzbe!");

@@ -1,0 +1,75 @@
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/">Početna</a> / <span>Moj profil</span>
+    </div>
+    <h1 style="margin-top:10px;">Moj profil</h1>
+  </div>
+
+  <div style="display:flex; gap:10px; align-items:center;">
+    <a class="btn btn-ghost" href="/users/me/edit">Uredi profil</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<% if (ok) { %>
+  <div class="alert alert-ok"><%= ok %></div>
+<% } %>
+
+<div class="section-card">
+  <div class="section-body" style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+    <div style="width:140px;">
+      <% var img = me && me.profileImageUrl ? String(me.profileImageUrl) : ""; %>
+      <% if (img) { %>
+        <img src="<%= img %>" alt="profilna" style="width:140px; height:140px; object-fit:cover; border-radius:12px;">
+      <% } else { %>
+        <div style="width:140px; height:140px; border-radius:12px; background:#eee; display:flex; align-items:center; justify-content:center;">
+          <span class="muted">Nema slike</span>
+        </div>
+      <% } %>
+    </div>
+
+    <div style="min-width:240px;">
+      <p style="margin:0;"><strong>Ime:</strong> <%= me.ime %></p>
+      <p style="margin:6px 0 0 0;"><strong>Prezime:</strong> <%= me.prezime %></p>
+      <p style="margin:6px 0 0 0;"><strong>Uloga:</strong> <%= me.role %></p>
+      <p style="margin:6px 0 0 0;"><strong>Status:</strong> <%= me.status %></p>
+      <p style="margin:6px 0 0 0;"><strong>Član od:</strong> <%= new Date(me.createdAt).toLocaleString() %></p>
+    </div>
+  </div>
+</div>
+
+<div style="height:12px;"></div>
+
+<div class="section-card">
+  <div class="section-head">
+    <h3>Promjena šifre</h3>
+  </div>
+  <div class="section-body">
+    <form method="post" action="/users/me/password">
+      <div class="form-row">
+        <label>Stara šifra</label>
+        <input type="password" name="oldPassword" required>
+      </div>
+
+      <div class="form-row">
+        <label>Nova šifra</label>
+        <input type="password" name="newPassword" required>
+      </div>
+
+      <div class="form-row">
+        <label>Potvrdi novu šifru</label>
+        <input type="password" name="newPassword2" required>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Sačuvaj</button>
+    </form>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

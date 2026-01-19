@@ -1,95 +1,114 @@
-<h1><%= title %></h1>
+<%- include("../partials/layout-top") %>
 
-<% if (error) { %><p style="color:red"><%= error %></p><% } %>
+<div class="page-head">
+  <h1 class="page-title"><%= title %></h1>
+  <p class="muted">Uredi podatke i sačuvaj izmjene.</p>
+</div>
 
-<form method="post" action="/seller/books/<%= bookId %>">
-  <div>
-    <label>Naziv</label><br />
-    <input name="naziv" value="<%= values.naziv || '' %>" required />
-  </div>
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
 
-  <div>
-    <label>Autor</label><br />
-    <input name="autor" value="<%= values.autor || '' %>" required />
-  </div>
+<div class="card bookform-card">
+  <form method="post" action="/seller/books/<%= bookId %>">
+    <div class="bookform-grid">
+      <div class="bookform-field">
+        <label class="bookform-label">Naziv</label>
+        <input class="bookform-input" name="naziv" value="<%= values.naziv || '' %>" required />
+      </div>
 
-  <div>
-    <label>Izdavač</label><br />
-    <input name="izdavac" value="<%= values.izdavac || '' %>" />
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Autor</label>
+        <input class="bookform-input" name="autor" value="<%= values.autor || '' %>" required />
+      </div>
 
-  <div>
-    <label>Godina izdavanja</label><br />
-    <input name="godinaIzdavanja" type="number" value="<%= values.godinaIzdavanja || '' %>" />
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Izdavač</label>
+        <input class="bookform-input" name="izdavac" value="<%= values.izdavac || '' %>" />
+      </div>
 
-  <div>
-    <label>Opis</label><br />
-    <textarea name="opis" rows="4"><%= values.opis || '' %></textarea>
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Godina izdavanja</label>
+        <input class="bookform-input" name="godinaIzdavanja" type="number" value="<%= values.godinaIzdavanja || '' %>" />
+      </div>
 
-  <div>
-    <label>Žanr</label><br />
-    <select name="zanrId" required>
-      <option value="">-- odaberi --</option>
-      <% lookups.genres.forEach(g => { %>
-        <option value="<%= g.id %>" <%= String(values.zanrId) === String(g.id) ? 'selected' : '' %>><%= g.naziv %></option>
-      <% }) %>
-    </select>
-  </div>
+      <div class="bookform-field bookform-span-2">
+        <label class="bookform-label">Opis</label>
+        <textarea class="bookform-textarea" name="opis" rows="4"><%= values.opis || '' %></textarea>
+      </div>
 
-  <div>
-    <label>Jezik</label><br />
-    <select name="jezikId" required>
-      <option value="">-- odaberi --</option>
-      <% lookups.languages.forEach(l => { %>
-        <option value="<%= l.id %>" <%= String(values.jezikId) === String(l.id) ? 'selected' : '' %>><%= l.naziv %></option>
-      <% }) %>
-    </select>
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Žanr</label>
+        <select class="bookform-select" name="zanrId" required>
+          <option value="">-- odaberi --</option>
+          <% for (var i = 0; i < lookups.genres.length; i++) { %>
+            <% var g = lookups.genres[i]; %>
+            <option value="<%= g.id %>" <%= String(values.zanrId) === String(g.id) ? 'selected' : '' %>><%= g.naziv %></option>
+          <% } %>
+        </select>
+      </div>
 
-  <div>
-    <label>Stanje</label><br />
-    <select name="stanjeId" required>
-      <option value="">odaberi</option>
-      <% lookups.conditions.forEach(c => { %>
-        <option value="<%= c.id %>" <%= String(values.stanjeId) === String(c.id) ? 'selected' : '' %>><%= c.naziv %></option>
-      <% }) %>
-    </select>
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Jezik</label>
+        <select class="bookform-select" name="jezikId" required>
+          <option value="">-- odaberi --</option>
+          <% for (var j = 0; j < lookups.languages.length; j++) { %>
+            <% var l = lookups.languages[j]; %>
+            <option value="<%= l.id %>" <%= String(values.jezikId) === String(l.id) ? 'selected' : '' %>><%= l.naziv %></option>
+          <% } %>
+        </select>
+      </div>
 
-  <div>
-    <label>Cijena</label><br />
-    <input name="cijena" type="number" step="0.01" value="<%= values.cijena || '0' %>" required />
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Stanje</label>
+        <select class="bookform-select" name="stanjeId" required>
+          <option value="">-- odaberi --</option>
+          <% for (var k = 0; k < lookups.conditions.length; k++) { %>
+            <% var c = lookups.conditions[k]; %>
+            <option value="<%= c.id %>" <%= String(values.stanjeId) === String(c.id) ? 'selected' : '' %>><%= c.naziv %></option>
+          <% } %>
+        </select>
+      </div>
 
-  <div>
-    <label>Glavna slika URL</label><br />
-    <input name="glavnaSlikaUrl" value="<%= values.glavnaSlikaUrl || '' %>" placeholder="https://..." />
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Cijena (KM)</label>
+        <input class="bookform-input" name="cijena" type="number" step="0.01" value="<%= values.cijena || '0' %>" required />
+      </div>
 
-  <div>
-    <label>
-      <input type="checkbox" name="spremnaZaRazmjenu" <%= (values.spremnaZaRazmjenu === 'on' || values.spremnaZaRazmjenu === true) ? 'checked' : '' %> />
-      Spremna za razmjenu
-    </label>
-  </div>
+      <div class="bookform-field">
+        <label class="bookform-label">Količina dostupno</label>
+        <input class="bookform-input" type="number" name="kolicinaDostupno" min="0" value="<%= (values.kolicinaDostupno != null ? values.kolicinaDostupno : 1) %>">
+      </div>
 
-  <div>
-    <label>Status</label><br />
-    <select name="status" required>
-      <option value="Aktivna" <%= values.status === 'Aktivna' ? 'selected' : '' %>>Aktivna</option>
-      <option value="Rezervisana" <%= values.status === 'Rezervisana' ? 'selected' : '' %>>Rezervisana</option>
-      <option value="Prodana/Razmjenjena" <%= values.status === 'Prodana/Razmjenjena' ? 'selected' : '' %>>Prodana/Razmjenjena</option>
-      <option value="Arhivirana" <%= values.status === 'Arhivirana' ? 'selected' : '' %>>Arhivirana</option>
-    </select>
-  </div>
+      <div class="bookform-field bookform-span-2">
+        <label class="bookform-label">Glavna slika URL</label>
+        <input class="bookform-input" name="glavnaSlikaUrl" value="<%= values.glavnaSlikaUrl || '' %>" placeholder="https://..." />
+        <div class="bookform-help">Ako nemaš sliku, ostavi prazno.</div>
+      </div>
 
-  <label>Količina dostupno</label>
-  <input type="number" name="kolicinaDostupno" min="0" value="<%= knjiga ? knjiga.kolicinaDostupno : 1 %>">
+      <div class="bookform-field bookform-span-2">
+        <label class="check-item">
+          <input type="checkbox" name="spremnaZaRazmjenu" <%= (values.spremnaZaRazmjenu === 'on' || values.spremnaZaRazmjenu === true) ? 'checked' : '' %> />
+          Spremna za razmjenu
+        </label>
+      </div>
 
-  <div style="margin-top:12px;">
-    <button type="submit">Sačuvaj izmjene</button>
-    <a href="/seller/books">Otkaži</a>
-  </div>
-</form>
+      <div class="bookform-field bookform-span-2">
+        <label class="bookform-label">Status</label>
+        <select class="bookform-select" name="status" required>
+          <option value="Aktivna" <%= values.status === 'Aktivna' ? 'selected' : '' %>>Aktivna</option>
+          <option value="Rezervisana" <%= values.status === 'Rezervisana' ? 'selected' : '' %>>Rezervisana</option>
+          <option value="Prodana/Razmjenjena" <%= values.status === 'Prodana/Razmjenjena' ? 'selected' : '' %>>Prodana/Razmjenjena</option>
+          <option value="Arhivirana" <%= values.status === 'Arhivirana' ? 'selected' : '' %>>Arhivirana</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bookform-actions">
+      <button class="btn btn-primary" type="submit">Sačuvaj izmjene</button>
+      <a class="btn btn-ghost" href="/seller/books">Otkaži</a>
+    </div>
+  </form>
+</div>
+
+<%- include("../partials/layout-bottom") %>

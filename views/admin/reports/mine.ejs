@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -42,3 +43,91 @@
 <% } %>
 
 <p><a href="/">Nazad</a></p>
+-->
+<%- include("../../partials/layout-top") %>
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb"><a href="/admin">Admin</a> / Moji reportovi</div>
+    <h1><%= title %></h1>
+    <p class="muted">Pregled reportova koje si ti kreirao.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin">Nazad na admin</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<% if (!reports || reports.length === 0) { %>
+  <div class="empty-state">
+    Nemaš reportova.
+  </div>
+<% } else { %>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h2>Reportovi (<%= reports.length %>)</h2>
+    </div>
+
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">ID</th>
+            <th style="width:160px;">Status</th>
+            <th style="width:220px;">Target</th>
+            <th>Razlog</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let i = 0; i < reports.length; i++) { %>
+            <% const r = reports[i]; %>
+
+            <tr>
+              <td><%= r.id %></td>
+
+              <td>
+                <%
+                  // mapping za badge (prilagodi ako imaš druge status-e)
+                  const st = r.status || "";
+                  let badgeClass = "badge badge-wait";
+                  if (st === "Zatvoren" || st === "CLOSED" || st === "Resolved") badgeClass = "badge badge-ok";
+                  if (st === "Odbijen" || st === "REJECTED") badgeClass = "badge badge-bad";
+                %>
+                <span class="<%= badgeClass %>"><%= st %></span>
+              </td>
+
+              <td class="muted">
+                <% if (r.prijavljeniUserId) { %>
+                  <div>User: <strong><%= r.prijavljeniUserId %></strong></div>
+                <% } %>
+
+                <% if (r.prijavljenaKnjigaId) { %>
+                  <div>Book: <strong><%= r.prijavljenaKnjigaId %></strong></div>
+                <% } %>
+
+                <% if (!r.prijavljeniUserId && !r.prijavljenaKnjigaId) { %>
+                  -
+                <% } %>
+              </td>
+
+              <td style="white-space: pre-wrap; word-break: break-word;">
+                <%= r.razlog %>
+              </td>
+            </tr>
+
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<% } %>
+
+<div style="margin-top:14px;">
+  <a class="btn btn-ghost" href="/">Nazad</a>
+</div>
+<%- include("../partials/layout-bottom") %>

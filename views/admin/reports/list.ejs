@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -46,3 +47,102 @@
 <% } %>
 
 <p><a href="/admin">Nazad</a></p>
+-->
+<%- include("../../partials/layout-top") %>
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb"><a href="/admin">Admin</a> / Reportovi</div>
+    <h1><%= title %></h1>
+    <p class="muted">Pregled otvorenih reportova i brzi ulaz u detalje.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin">Nazad na dashboard</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<% if (!reports || reports.length === 0) { %>
+  <div class="empty-state">
+    Nema otvorenih reportova.
+  </div>
+<% } else { %>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h2>Otvoreni reportovi (<%= reports.length %>)</h2>
+    </div>
+
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">ID</th>
+            <th style="width:160px;">Status</th>
+            <th>Razlog</th>
+            <th style="width:140px;">Reporter</th>
+            <th style="width:240px;">Target</th>
+            <th style="width:120px;">Akcija</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% for (let i = 0; i < reports.length; i++) { %>
+            <% const r = reports[i]; %>
+
+            <tr>
+              <td><%= r.id %></td>
+
+              <td>
+                <%
+                  const st = r.status || "";
+                  let badgeClass = "badge badge-wait";
+                  if (st === "Otvoren" || st === "OPEN" || st === "Na_cekanju") badgeClass = "badge badge-warn";
+                  if (st === "Zatvoren" || st === "CLOSED" || st === "Resolved") badgeClass = "badge badge-ok";
+                  if (st === "Odbijen" || st === "REJECTED") badgeClass = "badge badge-bad";
+                %>
+                <span class="<%= badgeClass %>"><%= st %></span>
+              </td>
+
+              <td style="white-space: pre-wrap; word-break: break-word;">
+                <%= r.razlog %>
+              </td>
+
+              <td class="muted">
+                <%= r.prijavioId %>
+              </td>
+
+              <td class="muted">
+                <% if (r.prijavljeniUserId) { %>
+                  <div>User: <strong><%= r.prijavljeniUserId %></strong></div>
+                <% } %>
+
+                <% if (r.prijavljenaKnjigaId) { %>
+                  <div>Book: <strong><%= r.prijavljenaKnjigaId %></strong></div>
+                <% } %>
+
+                <% if (!r.prijavljeniUserId && !r.prijavljenaKnjigaId) { %>
+                  -
+                <% } %>
+              </td>
+
+              <td>
+                <a class="btn btn-primary" href="/admin/reports/<%= r.id %>">Detalji</a>
+              </td>
+            </tr>
+
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<% } %>
+
+<div style="margin-top:14px;">
+  <a class="btn btn-ghost" href="/admin">Nazad</a>
+</div>
+<%- include("../../partials/layout-bottom") %>

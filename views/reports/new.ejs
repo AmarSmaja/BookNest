@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -26,3 +27,61 @@
   </form>
 
 <% } %>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<% if (!targetBook) { %>
+  <div class="card" style="margin-top:12px;">
+    <div class="empty-state">
+      Knjiga nije pronađena.
+      <div style="margin-top:12px;">
+        <a class="btn btn-ghost" href="/">Nazad</a>
+      </div>
+    </div>
+  </div>
+<% } else { %>
+
+  <div class="card" style="margin-top:12px;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+      <div>
+        <h2 style="margin:0 0 6px 0;">Prijava knjige</h2>
+        <p class="muted" style="margin:0;">
+          Prijavljuješ knjigu:
+          <strong><%= targetBook.naziv %></strong> — <%= targetBook.autor %>
+        </p>
+      </div>
+      <a class="btn btn-ghost" href="/books/<%= targetBook.id %>">Nazad</a>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error" style="margin-top:12px;"><%= error %></div>
+    <% } %>
+
+    <form method="post" action="/reports" style="margin-top:12px;">
+      <input type="hidden" name="bookId" value="<%= targetBook.id %>">
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="razlog">Razlog</label>
+          <textarea
+            id="razlog"
+            name="razlog"
+            rows="7"
+            style="width:100%;"
+            placeholder="Napisite problem"
+          ><%= values && values.razlog ? values.razlog : "" %></textarea>
+          <div class="form-hint">Napiši dovoljno detalja da admin može provjeriti prijavu.</div>
+        </div>
+
+        <div class="form-actions" style="justify-content:flex-end; margin-top:4px;">
+          <button class="btn btn-primary" type="submit">Pošalji prijavu</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+<% } %>
+
+<%- include("../partials/layout-bottom") %>

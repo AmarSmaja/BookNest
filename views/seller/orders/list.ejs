@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (!narudzbe || narudzbe.length === 0) { %>
@@ -26,3 +27,55 @@
     </tbody>
   </table>
 <% } %>
+-->
+<%- include("../../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<% if (!narudzbe || narudzbe.length === 0) { %>
+  <div class="empty-state">Nema narudžbi.</div>
+<% } else { %>
+
+  <div class="orders-wrap">
+    <div class="orders-list">
+      <% for (var i = 0; i < narudzbe.length; i++) { %>
+        <% var o = narudzbe[i]; %>
+
+        <%
+          var st = o && o.status ? String(o.status) : "";
+          var tip = o && o.tip ? String(o.tip) : "";
+          var ukupno = (o && o.ukupnaCijena !== undefined && o.ukupnaCijena !== null) ? String(o.ukupnaCijena) : "0";
+
+          var badgeCls = "badge";
+          if (st === "Na_cekanju") badgeCls = "badge badge-wait";
+          else if (st === "Prihvacena") badgeCls = "badge badge-ok";
+          else if (st === "Zavrsena") badgeCls = "badge badge-ok";
+          else if (st === "Odbijena") badgeCls = "badge badge-bad";
+          else if (st === "Otkazana") badgeCls = "badge badge-bad";
+          else badgeCls = "badge badge-warn";
+        %>
+
+        <div class="order-card">
+          <div class="order-head">
+            <div>
+              <p class="order-title">Narudžba #<%= o.id %></p>
+              <div class="order-meta">
+                Tip: <%= tip %>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span class="<%= badgeCls %>"><%= st %></span>
+              <span class="cart-price"><%= ukupno %> KM</span>
+              <a class="btn btn-primary" href="/seller/orders/<%= o.id %>">Detalji</a>
+            </div>
+          </div>
+        </div>
+
+      <% } %>
+    </div>
+  </div>
+
+<% } %>
+
+<%- include("../../partials/layout-bottom") %>

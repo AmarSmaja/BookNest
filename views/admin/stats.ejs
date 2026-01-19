@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -64,3 +65,150 @@
     options: { scales: { y: { beginAtZero: true } } }
   });
 </script>
+-->
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">Admin</div>
+    <h1 style="margin:6px 0 0 0;"><%= title %></h1>
+    <p class="muted" style="margin:6px 0 0 0;">Pregled osnovnih metrika (knjige, narudžbe, žanrovi).</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin/users">Korisnici</a>
+    <a class="btn btn-ghost" href="/">Nazad na početnu</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<% if (!stats) { %>
+  <div class="empty-state">Nema podataka za statistiku.</div>
+<% } else { %>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; align-items:start;">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Knjige po statusu</h3>
+      </div>
+      <div class="section-body">
+        <div class="muted" style="margin-bottom:10px;">Distribucija svih knjiga po statusima.</div>
+        <div style="height:320px;">
+          <canvas id="booksStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Narudžbe po statusu</h3>
+      </div>
+      <div class="section-body">
+        <div class="muted" style="margin-bottom:10px;">Broj narudžbi u svakom statusu.</div>
+        <div style="height:320px;">
+          <canvas id="ordersStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;" class="section-card">
+    <div class="section-head">
+      <h3>Top žanrovi (aktivne knjige na stanju)</h3>
+    </div>
+    <div class="section-body">
+      <div class="muted" style="margin-bottom:10px;">
+        Žanrovi rangirani po broju aktivnih knjiga koje imaju količinu &gt; 0.
+      </div>
+      <div style="height:360px;">
+        <canvas id="topGenresChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+<% } %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  (function () {
+    var stats = <%- JSON.stringify(stats || {}) %>;
+
+    var booksByStatus = stats.booksByStatus || [];
+    var ordersByStatus = stats.ordersByStatus || [];
+    var topGenres = stats.topGenres || [];
+
+    function toLabels(rows) {
+      var labels = [];
+      for (var i = 0; i < rows.length; i++) {
+        labels.push(rows[i].status || rows[i].label || "N/A");
+      }
+      return labels;
+    }
+
+    function toCounts(rows) {
+      var counts = [];
+      for (var i = 0; i < rows.length; i++) {
+        var x = Number(rows[i].count);
+        if (!Number.isFinite(x)) x = 0;
+        counts.push(x);
+      }
+      return counts;
+    }
+
+    // Pie: knjige po statusu
+    var el1 = document.getElementById("booksStatusChart");
+    if (el1) {
+      new Chart(el1, {
+        type: "pie",
+        data: {
+          labels: toLabels(booksByStatus),
+          datasets: [{ data: toCounts(booksByStatus) }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    // Bar: narudžbe po statusu
+    var el2 = document.getElementById("ordersStatusChart");
+    if (el2) {
+      new Chart(el2, {
+        type: "bar",
+        data: {
+          labels: toLabels(ordersByStatus),
+          datasets: [{ label: "Broj narudžbi", data: toCounts(ordersByStatus) }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    // Bar: top žanrovi
+    var el3 = document.getElementById("topGenresChart");
+    if (el3) {
+      new Chart(el3, {
+        type: "bar",
+        data: {
+          labels: toLabels(topGenres),
+          datasets: [{ label: "Aktivne knjige", data: toCounts(topGenres) }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  })();
+</script>
+
+<%- include("../partials/layout-bottom") %>

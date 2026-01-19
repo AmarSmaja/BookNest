@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -20,3 +21,64 @@
     <a href="/orders/<%= orderId %>">Nazad</a>
   </div>
 </form>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<%
+  var naziv = "";
+  var autor = "";
+  var bookIdTxt = "";
+  var orderIdTxt = "";
+
+  if (knjiga) {
+    if (knjiga.naziv != null) naziv = String(knjiga.naziv);
+    if (knjiga.autor != null) autor = String(knjiga.autor);
+  }
+
+  if (bookId != null) bookIdTxt = String(bookId);
+  if (orderId != null) orderIdTxt = String(orderId);
+%>
+
+<div class="section-card" style="margin-top:12px;">
+  <div class="section-head">
+    <h2>Novi komentar</h2>
+  </div>
+
+  <div class="section-body">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="muted" style="margin-bottom:6px;">Komentarišeš knjigu</div>
+
+      <% if (naziv || autor) { %>
+        <div style="font-weight:900; font-size:15px;"><%= naziv %></div>
+        <div class="muted" style="margin-top:4px;"><%= autor %></div>
+      <% } else { %>
+        <div class="muted">Knjiga ID: <%= bookIdTxt %></div>
+      <% } %>
+
+      <div class="muted" style="margin-top:8px;">Narudžba #<%= orderIdTxt %></div>
+    </div>
+
+    <form method="post" action="/comments">
+      <input type="hidden" name="orderId" value="<%= orderIdTxt %>">
+      <input type="hidden" name="bookId" value="<%= bookIdTxt %>">
+
+      <div class="form-row" style="margin-top:6px;">
+        <label>Sadržaj komentara</label>
+        <textarea name="sadrzaj" rows="5" placeholder="Napiši komentar..." required></textarea>
+      </div>
+
+      <div class="detail-actions" style="margin-top:12px;">
+        <button class="btn btn-primary" type="submit">Pošalji komentar</button>
+        <a class="btn btn-ghost" href="/orders/<%= orderIdTxt %>">Nazad</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

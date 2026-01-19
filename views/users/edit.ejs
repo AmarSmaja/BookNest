@@ -1,0 +1,42 @@
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/">Početna</a> / <a href="/users/me">Moj profil</a> / <span>Uredi</span>
+    </div>
+    <h1 style="margin-top:10px;">Uredi profil</h1>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="section-card">
+  <div class="section-body">
+    <form method="post" action="/users/me/edit">
+      <div class="form-row">
+        <label>Ime</label>
+        <input type="text" name="ime" value="<%= me.ime %>" required>
+      </div>
+
+      <div class="form-row">
+        <label>Prezime</label>
+        <input type="text" name="prezime" value="<%= me.prezime %>" required>
+      </div>
+
+      <div class="form-row">
+        <label>Profilna slika (URL) — može biti prazno</label>
+        <input type="text" name="profileImageUrl" value="<%= me.profileImageUrl ? me.profileImageUrl : "" %>">
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn btn-primary" type="submit">Sačuvaj</button>
+        <a class="btn btn-ghost" href="/users/me">Odustani</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

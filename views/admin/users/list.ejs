@@ -1,3 +1,4 @@
+<!--
 <h1>Admin - Users</h1>
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
 
@@ -53,3 +54,134 @@
     </tr>
   <% }) %>
 </table>
+-->
+<%- include("../../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">Admin</div>
+    <h1 style="margin:6px 0 0 0;">Korisnici</h1>
+    <p class="muted" style="margin:6px 0 0 0;">Upravljanje ulogama, statusima i blokadama.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin">Dashboard</a>
+    <a class="btn btn-ghost" href="/admin/stats">Statistika</a>
+    <a class="btn btn-ghost" href="/admin/lookups/genres">Lookups</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="section-card" style="margin-top: 12px;">
+  <div class="section-head">
+    <h3>Lista korisnika</h3>
+  </div>
+
+  <div class="section-body">
+    <% if (!users || users.length === 0) { %>
+      <div class="empty-state">Nema korisnika za prikaz.</div>
+    <% } else { %>
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="white-space:nowrap;">ID</th>
+              <th>Email</th>
+              <th>Ime</th>
+              <th style="white-space:nowrap;">Role</th>
+              <th>Status</th>
+              <th style="white-space:nowrap;">Blokiran do</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(user => { %>
+              <tr>
+                <td style="white-space:nowrap;"><%= user.id %></td>
+                <td style="white-space:nowrap;"><%= user.email %></td>
+                <td style="white-space:nowrap;"><%= user.ime %> <%= user.prezime %></td>
+                <td style="white-space:nowrap;">
+                  <span class="badge badge-wait"><%= user.role %></span>
+                </td>
+                <td style="white-space:nowrap;">
+                  <%
+                    var s = String(user.status || "");
+                    var badgeCls = "badge";
+                    if (s === "Aktivan") badgeCls = "badge badge-ok";
+                    else if (s === "Blokiran") badgeCls = "badge badge-bad";
+                    else if (s === "Deaktiviran") badgeCls = "badge badge-warn";
+                    else if (s === "Arhiviran") badgeCls = "badge badge-wait";
+                  %>
+                  <span class="<%= badgeCls %>"><%= user.status %></span>
+                </td>
+                <td style="white-space:nowrap;">
+                  <%= user.blokiran_do ? new Date(user.blokiran_do).toLocaleString() : "-" %>
+                </td>
+
+                <td>
+                  <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+
+                    <form class="cart-inline-form" method="post" action="/admin/users/<%= user.id %>/role">
+                      <div style="display:flex; gap:8px; align-items:center;">
+                        <select name="role">
+                          <option value="Admin" <%= user.role === "Admin" ? "selected" : "" %>>Admin</option>
+                          <option value="Prodavac" <%= user.role === "Prodavac" ? "selected" : "" %>>Prodavac</option>
+                          <option value="Kupac" <%= user.role === "Kupac" ? "selected" : "" %>>Kupac</option>
+                        </select>
+                        <button class="btn btn-ghost" type="submit">Postavi role</button>
+                      </div>
+                    </form>
+
+                    <form class="cart-inline-form" method="post" action="/admin/users/<%= user.id %>/status">
+                      <div style="display:flex; gap:8px; align-items:center;">
+                        <select name="status">
+                          <option value="Aktivan" <%= user.status === "Aktivan" ? "selected" : "" %>>Aktivan</option>
+                          <option value="Deaktiviran" <%= user.status === "Deaktiviran" ? "selected" : "" %>>Deaktiviran</option>
+                          <option value="Arhiviran" <%= user.status === "Arhiviran" ? "selected" : "" %>>Arhiviran</option>
+                          <option value="Blokiran" <%= user.status === "Blokiran" ? "selected" : "" %>>Blokiran</option>
+                        </select>
+                        <button class="btn btn-ghost" type="submit">Postavi status</button>
+                      </div>
+                    </form>
+
+                    <form class="cart-inline-form" method="post" action="/admin/users/<%= user.id %>/block"
+                          onsubmit="return confirm('Blokirati korisnika?');">
+                      <div style="display:flex; gap:8px; align-items:center;">
+                        <select name="days">
+                          <option value="15">15 dana</option>
+                          <option value="">Zauvijek</option>
+                        </select>
+                        <button class="btn btn-danger" type="submit">Blokiraj</button>
+                      </div>
+                    </form>
+
+                    <form class="cart-inline-form" method="post" action="/admin/users/<%= user.id %>/unblock"
+                          onsubmit="return confirm('Odblokirati korisnika?');">
+                      <button class="btn btn-ghost" type="submit">Odblokiraj</button>
+                    </form>
+
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="section-card" style="margin-top: 14px;">
+  <div class="section-body" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+    <a class="btn btn-ghost" href="/admin">Nazad na dashboard</a>
+
+    <form method="post" action="/auth/logout" class="cart-inline-form">
+      <button class="btn btn-ghost" type="submit">Logout</button>
+    </form>
+  </div>
+</div>
+
+<%- include("../../partials/layout-bottom") %>

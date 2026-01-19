@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
@@ -80,3 +81,139 @@
     <a href="/seller/books">Otkaži</a>
   </div>
 </form>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<%
+  var naziv = values && values.naziv != null ? String(values.naziv) : "";
+  var autor = values && values.autor != null ? String(values.autor) : "";
+  var izdavac = values && values.izdavac != null ? String(values.izdavac) : "";
+  var godinaIzdavanja = values && values.godinaIzdavanja != null ? String(values.godinaIzdavanja) : "";
+  var opis = values && values.opis != null ? String(values.opis) : "";
+  var zanrId = values && values.zanrId != null ? String(values.zanrId) : "";
+  var jezikId = values && values.jezikId != null ? String(values.jezikId) : "";
+  var stanjeId = values && values.stanjeId != null ? String(values.stanjeId) : "";
+  var cijena = values && values.cijena != null ? String(values.cijena) : "0";
+  var glavnaSlikaUrl = values && values.glavnaSlikaUrl != null ? String(values.glavnaSlikaUrl) : "";
+
+  var checked = "";
+  if (values && (values.spremnaZaRazmjenu === "on" || values.spremnaZaRazmjenu === true)) checked = "checked";
+%>
+
+<div class="section-card" style="margin-top:12px;">
+  <div class="section-head">
+    <h2>Podaci o knjizi</h2>
+  </div>
+
+  <div class="section-body">
+    <form method="post" action="/seller/books">
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Naziv</label>
+          <input name="naziv" value="<%= naziv %>" required />
+        </div>
+
+        <div class="form-row">
+          <label>Autor</label>
+          <input name="autor" value="<%= autor %>" required />
+        </div>
+
+        <div class="form-row">
+          <label>Izdavač</label>
+          <input name="izdavac" value="<%= izdavac %>" />
+        </div>
+
+        <div class="form-row">
+          <label>Godina izdavanja</label>
+          <input name="godinaIzdavanja" type="number" value="<%= godinaIzdavanja %>" />
+        </div>
+
+        <div class="form-row">
+          <label>Opis</label>
+          <textarea name="opis" rows="4"><%= opis %></textarea>
+        </div>
+
+        <div class="form-row">
+          <label>Žanr</label>
+          <select name="zanrId" required>
+            <option value="">-- odaberi --</option>
+            <%
+              var genresArr = (lookups && lookups.genres) ? lookups.genres : [];
+              for (var i = 0; i < genresArr.length; i++) {
+                var g = genresArr[i];
+                var gid = g && g.id != null ? String(g.id) : "";
+                var gname = g && g.naziv != null ? String(g.naziv) : "";
+                var sel = (gid && zanrId && gid === zanrId) ? "selected" : "";
+            %>
+              <option value="<%= gid %>" <%= sel %>><%= gname %></option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>Jezik</label>
+          <select name="jezikId" required>
+            <option value="">-- odaberi --</option>
+            <%
+              var langArr = (lookups && lookups.languages) ? lookups.languages : [];
+              for (var j = 0; j < langArr.length; j++) {
+                var l = langArr[j];
+                var lid = l && l.id != null ? String(l.id) : "";
+                var lname = l && l.naziv != null ? String(l.naziv) : "";
+                var sel2 = (lid && jezikId && lid === jezikId) ? "selected" : "";
+            %>
+              <option value="<%= lid %>" <%= sel2 %>><%= lname %></option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>Stanje</label>
+          <select name="stanjeId" required>
+            <option value="">-- odaberi --</option>
+            <%
+              var condArr = (lookups && lookups.conditions) ? lookups.conditions : [];
+              for (var k = 0; k < condArr.length; k++) {
+                var c = condArr[k];
+                var cid = c && c.id != null ? String(c.id) : "";
+                var cname = c && c.naziv != null ? String(c.naziv) : "";
+                var sel3 = (cid && stanjeId && cid === stanjeId) ? "selected" : "";
+            %>
+              <option value="<%= cid %>" <%= sel3 %>><%= cname %></option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>Cijena (KM)</label>
+          <input name="cijena" type="number" step="0.01" value="<%= cijena %>" required />
+        </div>
+
+        <div class="form-row">
+          <label>Glavna slika URL</label>
+          <input name="glavnaSlikaUrl" value="<%= glavnaSlikaUrl %>" placeholder="https://..." />
+        </div>
+
+        <div class="form-row">
+          <label class="check-item" style="width:100%;">
+            <input type="checkbox" name="spremnaZaRazmjenu" <%= checked %> />
+            Spremna za razmjenu
+          </label>
+        </div>
+      </div>
+
+      <div class="detail-actions" style="margin-top:12px;">
+        <button class="btn btn-primary" type="submit">Sačuvaj</button>
+        <a class="btn btn-ghost" href="/seller/books">Otkaži</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

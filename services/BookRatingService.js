@@ -5,7 +5,7 @@ const notificationDao = require("../dao/NotificationDao");
 class BookRatingService {
     async ostaviOcjenuZaNarudzbu(user, orderId, bookId, ocjena) {
         if (!user) throw new Error("Nisi logovan!");
-        if (user.role !== "Kupac") throw new Error("Samo kupac moze ostaviti ocjenu!");
+        //if (user.role !== "Kupac") throw new Error("Samo kupac moze ostaviti ocjenu!");
 
         const oid = Number(orderId);
         if (!Number.isFinite(oid)) throw new Error("Neispravan ID narudzbe!");

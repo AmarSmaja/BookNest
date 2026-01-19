@@ -25,6 +25,7 @@ class ExchangeDao {
     }
 
     findSellerList(sellerId) {
+        console.log("DAO findSellerList sellerId:", sellerId);
         return db.ExchangeRequest.findAll({
             where: { prodavacId: sellerId },
             order: [["id", "ASC"]],
@@ -39,13 +40,17 @@ class ExchangeDao {
         return db.ExchangeRequest.findOne({ where: { id: exchangeId, prodavacId: sellerId } });
     }
 
+    findById(exchangeId) {
+        return db.ExchangeRequest.findByPk(exchangeId);
+    }
+
     async getDetail(exchangeId, t) {
-        const sadrzi = [
+        const include = [
             { model: db.ExchangeRequestedBook, as: "requested", include: [{ model: db.Book, as: "book", required: false }] },
             { model: db.ExchangeOfferedBook, as: "offered", include: [{ model: db.Book, as: "book", required: false }] },
         ];
 
-        return db.ExchangeRequest.findByPk(exchangeId, { sadrzi, transaction: t, });
+        return db.ExchangeRequest.findByPk(exchangeId, { include: include, transaction: t, });
     }
 
     updateStatus(exchangeId, status, t) {

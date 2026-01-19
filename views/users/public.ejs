@@ -1,0 +1,33 @@
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">
+      <a href="/">Početna</a> / <span>Profil</span>
+    </div>
+    <h1 style="margin-top:10px;">Profil korisnika</h1>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-body" style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+    <div style="width:140px;">
+      <% var img = profil && profil.profileImageUrl ? String(profil.profileImageUrl) : ""; %>
+      <% if (img) { %>
+        <img src="<%= img %>" alt="profilna" style="width:140px; height:140px; object-fit:cover; border-radius:12px;">
+      <% } else { %>
+        <div style="width:140px; height:140px; border-radius:12px; background:#eee; display:flex; align-items:center; justify-content:center;">
+          <span class="muted">Nema slike</span>
+        </div>
+      <% } %>
+    </div>
+
+    <div style="min-width:240px;">
+      <p style="margin:0;"><strong>Ime i prezime:</strong> <%= profil.ime %> <%= profil.prezime %></p>
+      <p style="margin:6px 0 0 0;"><strong>Uloga:</strong> <%= profil.role %></p>
+      <p style="margin:6px 0 0 0;"><strong>Član od:</strong> <%= new Date(profil.createdAt).toLocaleString() %></p>
+    </div>
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -61,3 +62,153 @@
 </form>
 
 <p><a href="/admin/reports">Nazad</a></p>
+-->
+<%- include("../../partials/header") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb"><a href="/admin">Admin</a> / <a href="/admin/reports">Reportovi</a> / Detalji</div>
+    <h1><%= title %></h1>
+    <p class="muted">Pregled reporta i administrativne akcije.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin/reports">Nazad</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="section-card">
+  <div class="section-head">
+    <h2>Detalji reporta</h2>
+  </div>
+
+  <div class="section-body">
+    <div class="kv">
+      <div class="k">ID</div>
+      <div class="v"><strong><%= report.id %></strong></div>
+
+      <div class="k">Status</div>
+      <div class="v">
+        <%
+          const st = report.status || "";
+          let badgeClass = "badge badge-wait";
+          if (st === "Otvoren" || st === "OPEN" || st === "Na_cekanju") badgeClass = "badge badge-warn";
+          if (st === "U_obradi") badgeClass = "badge badge-wait";
+          if (st === "Rijesen") badgeClass = "badge badge-ok";
+          if (st === "Odbijen") badgeClass = "badge badge-bad";
+        %>
+        <span class="<%= badgeClass %>"><%= st %></span>
+      </div>
+
+      <div class="k">Reporter ID</div>
+      <div class="v"><%= report.prijavioId %></div>
+
+      <div class="k">Target user</div>
+      <div class="v">
+        <% if (report.prijavljeniUserId) { %>
+          <strong><%= report.prijavljeniUserId %></strong>
+        <% } else { %>
+          -
+        <% } %>
+      </div>
+
+      <div class="k">Target book</div>
+      <div class="v">
+        <% if (report.prijavljenaKnjigaId) { %>
+          <strong><%= report.prijavljenaKnjigaId %></strong>
+          <span class="muted" style="margin-left:8px;">
+            <a href="/books/<%= report.prijavljenaKnjigaId %>">Otvori knjigu</a>
+          </span>
+        <% } else { %>
+          -
+        <% } %>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <div class="muted" style="margin-bottom:6px;">Razlog</div>
+      <div style="
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.02);
+        border-radius: 14px;
+        padding: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      "><%= report.razlog %></div>
+    </div>
+  </div>
+</div>
+
+<div class="detail-grid" style="margin-top:14px;">
+  <!-- Akcije za knjigu -->
+  <div class="section-card">
+    <div class="section-head">
+      <h3>Akcije (knjiga)</h3>
+    </div>
+
+    <div class="section-body">
+      <% if (targetBook) { %>
+        <div class="kv">
+          <div class="k">Knjiga</div>
+          <div class="v"><strong><%= targetBook.naziv %></strong> — <%= targetBook.autor %></div>
+
+          <div class="k">Status knjige</div>
+          <div class="v">
+            <span class="badge"><%= targetBook.status %></span>
+          </div>
+        </div>
+
+        <div class="detail-actions" style="margin-top:12px;">
+          <form method="post" action="/admin/reports/<%= report.id %>/book/archive" class="inline-form"
+                onsubmit="return confirm('Arhivirati knjigu?');">
+            <button type="submit" class="btn btn-danger">Arhiviraj</button>
+          </form>
+
+          <form method="post" action="/admin/reports/<%= report.id %>/book/activate" class="inline-form"
+                onsubmit="return confirm('Vratiti knjigu na Aktivna?');">
+            <button type="submit" class="btn btn-primary">Aktiviraj</button>
+          </form>
+
+          <a class="btn btn-ghost" href="/books/<%= targetBook.id %>">Otvori knjigu</a>
+        </div>
+      <% } else { %>
+        <div class="empty-state">Nema target knjige u ovom reportu.</div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Promjena statusa reporta -->
+  <div class="section-card">
+    <div class="section-head">
+      <h3>Status reporta</h3>
+    </div>
+
+    <div class="section-body">
+      <form method="post" action="/admin/reports/<%= report.id %>/status">
+        <div class="form-row" style="max-width:420px;">
+          <label>Promijeni status</label>
+          <select name="status" required>
+            <option value="U_obradi" <%= report.status === "U_obradi" ? "selected" : "" %>>U obradi</option>
+            <option value="Rijesen"   <%= report.status === "Rijesen" ? "selected" : "" %>>Riješen</option>
+            <option value="Odbijen"   <%= report.status === "Odbijen" ? "selected" : "" %>>Odbijen</option>
+          </select>
+
+          <div class="form-actions" style="justify-content:flex-start; margin-top:10px;">
+            <button type="submit" class="btn btn-primary">Sačuvaj</button>
+            <a class="btn btn-ghost" href="/admin/reports">Nazad</a>
+          </div>
+        </div>
+      </form>
+
+      <p class="muted" style="margin-top:10px;">
+        Preporuka: nakon akcije nad knjigom (arhiv/aktivacija) postavi report na “Riješen” ili “Odbijen”.
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include("../../partials/footer") %>

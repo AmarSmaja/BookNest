@@ -1,56 +1,104 @@
-<h1><%= title %></h1>
+<%- include("../../partials/layout-top") %>
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb"><a href="/admin">Admin</a> / Zahtjevi za prodavača</div>
+    <h1><%= title %></h1>
+    <p class="muted">Ovdje odobravaš ili odbijaš zahtjeve korisnika da postanu prodavači.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/admin">Nazad na admin</a>
+  </div>
+</div>
 
 <% if (error) { %>
-  <p style="color:red"><%= error %></p>
+  <div class="alert alert-error"><%= error %></div>
 <% } %>
 
 <% if (!rows || rows.length === 0) { %>
-  <p>Nema zahtjeva na cekanju.</p>
+  <div class="empty-state">
+    Nema zahtjeva na čekanju.
+  </div>
 <% } else { %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>User ID</th>
-        <th>Korisnik</th>
-        <th>Status</th>
-        <th>Requested At</th>
-        <th>Akcije</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% for (let i = 0; i < rows.length; i++) { %>
-        <% const p = rows[i].profile; %>
-        <% const u = rows[i].user; %>
 
-        <tr>
-          <td><%= p.userId %></td>
+  <div class="section-card">
+    <div class="section-head">
+      <h2>Zahtjevi na čekanju (<%= rows.length %>)</h2>
+    </div>
 
-          <td>
-            <% if (u) { %>
-              <% if (u.ime) { %><%= u.ime %><% } %>
-              <% if (u.prezime) { %> <%= u.prezime %><% } %>
-              <% if (u.mail) { %> — <%= u.mail %><% } %>
-            <% } else { %>
-              (user nije pronadjen)
-            <% } %>
-          </td>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:110px;">User ID</th>
+            <th>Korisnik</th>
+            <th style="width:160px;">Status</th>
+            <th style="width:220px;">Requested</th>
+            <th style="width:220px;">Akcije</th>
+          </tr>
+        </thead>
 
-          <td><%= p.status %></td>
-          <td><%= p.requestedAt ? p.requestedAt : "-" %></td>
+        <tbody>
+          <% for (let i = 0; i < rows.length; i++) { %>
+            <% const p = rows[i].profile; %>
+            <% const u = rows[i].user; %>
 
-          <td>
-            <form method="post" action="/admin/seller-requests/<%= p.userId %>/approve" style="display:inline-block">
-              <button type="submit">Odobri</button>
-            </form>
+            <tr>
+              <td><%= p.userId %></td>
 
-            <form method="post" action="/admin/seller-requests/<%= p.userId %>/reject" style="display:inline-block; margin-left:6px">
-              <button type="submit">Odbij</button>
-            </form>
-          </td>
-        </tr>
-      <% } %>
-    </tbody>
-  </table>
+              <td style="min-width:260px;">
+                <% if (u) { %>
+                  <div style="font-weight:900;">
+                    <%= (u.ime || "") %><% if (u.prezime) { %> <%= u.prezime %><% } %>
+                  </div>
+                  <div class="muted" style="word-break: break-word;">
+                    <%= (u.mail || u.email || "-") %>
+                  </div>
+                <% } else { %>
+                  <span class="muted">(user nije pronađen)</span>
+                <% } %>
+              </td>
+
+              <td>
+                <% 
+                  // Badge mapping (ako p.status ima druge vrijednosti, samo će pasti na default)
+                  const st = p.status || "";
+                  let badgeClass = "badge badge-wait";
+                  if (st === "APPROVED" || st === "Odobren" || st === "Prihvacen") badgeClass = "badge badge-ok";
+                  if (st === "REJECTED" || st === "Odbijen") badgeClass = "badge badge-bad";
+                %>
+                <span class="<%= badgeClass %>"><%= st %></span>
+              </td>
+
+              <td class="muted">
+                <% if (p.requestedAt) { %>
+                  <%= (p.requestedAt instanceof Date) ? p.requestedAt.toLocaleString() : p.requestedAt %>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+
+              <td style="white-space: normal;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                  <form method="post" action="/admin/seller-requests/<%= p.userId %>/approve" style="display:inline-block; margin:0;">
+                    <button type="submit" class="btn btn-primary">Odobri</button>
+                  </form>
+
+                  <form method="post" action="/admin/seller-requests/<%= p.userId %>/reject" style="display:inline-block; margin:0;">
+                    <button type="submit" class="btn btn-danger">Odbij</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 <% } %>
 
-<p><a href="/">Nazad</a></p>
+<div style="margin-top:14px;">
+  <a class="btn btn-ghost" href="/">Nazad</a>
+</div>
+<%- include("../../partials/layout-bottom") %>

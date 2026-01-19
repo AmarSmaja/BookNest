@@ -1,3 +1,4 @@
+<!--
 <%- include("../partials/layout-top") %>
 
 <h1>Korpa</h1>
@@ -141,3 +142,120 @@
 <% } %>
 
 <%- include("../partials/layout-bottom") %>
+-->
+
+<%- include("../partials/header", { title: title }) %>
+
+<div class="detail-top">
+  <div>
+    <h1><%= title %></h1>
+    <div class="breadcrumb muted">Pregled stavki u korpi i checkout.</div>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<% if (!items || items.length === 0) { %>
+  <div class="cart-empty">
+    Korpa je prazna.
+  </div>
+<% } else { %>
+
+  <div class="cart-grid">
+    <!-- LEFT: Items -->
+    <div class="cart-card">
+      <div class="cart-head">
+        <h2>Stavke</h2>
+        <span class="badge"><%= items.length %></span>
+      </div>
+
+      <div class="cart-body">
+        <% for (let idx = 0; idx < items.length; idx++) { %>
+          <% const i = items[idx]; %>
+          <% const b = i.book; %>
+
+          <% const cijena = Number((b && b.cijena) || 0); %>
+          <% const kolicina = Number(i.kolicina || 0); %>
+          <% const subtotal = (cijena * kolicina); %>
+
+          <div class="cart-item">
+            <div class="cart-thumb">
+              <% if (b && b.glavnaSlikaUrl) { %>
+                <img src="<%= b.glavnaSlikaUrl %>" alt="Knjiga" />
+              <% } else { %>
+                <div class="book-cover-empty">Nema slike</div>
+              <% } %>
+            </div>
+
+            <div class="cart-meta">
+              <p class="title"><%= b ? b.naziv : "Knjiga" %></p>
+              <p class="author"><%= b ? b.autor : "-" %></p>
+
+              <div class="small">
+                Cijena: <strong><%= cijena.toFixed(2) %></strong>
+                &nbsp;|&nbsp;
+                Količina: <strong><%= kolicina %></strong>
+              </div>
+
+              <div class="small">
+                Subtotal: <strong><%= subtotal.toFixed(2) %></strong>
+              </div>
+            </div>
+
+            <div class="cart-actions">
+              <div class="cart-price"><%= subtotal.toFixed(2) %></div>
+
+              <form method="post" action="/cart/remove" class="cart-inline-form"
+                    onsubmit="return confirm('Ukloniti stavku iz korpe?');">
+                <input type="hidden" name="cartItemId" value="<%= i.id %>"/>
+                <button type="submit" class="btn btn-danger">Ukloni</button>
+              </form>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="cart-card">
+      <div class="cart-head">
+        <h2>Sažetak</h2>
+      </div>
+
+      <div class="cart-body">
+        <div class="order-summary">
+          <div class="cart-summary-row">
+            <div class="cart-summary-label">Broj stavki</div>
+            <div class="cart-summary-value"><%= items.length %></div>
+          </div>
+
+          <div class="cart-summary-row">
+            <div class="cart-summary-label">Ukupno</div>
+            <div class="cart-summary-value"><%= Number(ukupno || 0).toFixed(2) %></div>
+          </div>
+        </div>
+
+        <div class="order-actions" style="margin-top:12px;">
+          <form method="post" action="/orders/checkout" style="margin:0; width:100%;">
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+              Checkout
+            </button>
+          </form>
+
+          <a class="btn btn-ghost" href="/books" style="width:100%; text-align:center;">
+            Nastavi kupovinu
+          </a>
+        </div>
+
+        <p class="muted" style="margin-top:10px;">
+          Nakon checkout-a, narudžba ide u status <strong>Na čekanju</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+<% } %>
+
+<%- include("../partials/footer") %>

@@ -17,20 +17,20 @@ class SellerApprovingService {
         let profileImageUrl = null;
 
         if (formData) {
-            if (formData.cityId !== null && formData.cityId !== "") {
-                const parsirano = Number(formData.cityId);
-                if (Number.isFinite(parsirano)) {
-                    cityId = parsirano;
-                }
-
-                if (formData.profileImageUrl != null) {
-                    const s = String(formData.profileImageUrl).trim();
-                    if (s.length > 0) {
-                        profileImageUrl = s;
-                    }
+            if (formData.cityId != null && String(formData.cityId).trim() !== "") {
+                const parsed = Number(formData.cityId);
+                if (Number.isFinite(parsed) && parsed > 0) {
+                    cityId = parsed;
                 }
             }
+
+            if (formData.profileImageUrl != null) {
+                const s = String(formData.profileImageUrl).trim();
+                if (s.length > 0) profileImageUrl = s;
+            }
         }
+
+        if (!cityId) throw new Error("Grad je obavezan!");
 
         return db.sequelize.transaction(async (t) => {
             const profil = await sellerProfileDao.create({

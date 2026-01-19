@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <% if (error) { %>
@@ -70,3 +71,192 @@
 </form>
 
 <p><a href="/seller/exchanges">Nazad</a></p>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<%
+  var st = razmjena && razmjena.status ? String(razmjena.status) : "";
+
+  var badgeCls = "badge";
+  if (st === "Na_cekanju") badgeCls = "badge badge-wait";
+  else if (st === "Prihvacena") badgeCls = "badge badge-ok";
+  else if (st === "Zavrsena") badgeCls = "badge badge-ok";
+  else if (st === "Odbijena") badgeCls = "badge badge-bad";
+  else if (st === "Otkazana") badgeCls = "badge badge-bad";
+  else badgeCls = "badge badge-warn";
+
+  var kupacIdTekst = "";
+  if (razmjena && razmjena.kupacId !== undefined && razmjena.kupacId !== null) kupacIdTekst = String(razmjena.kupacId);
+
+  var reqArr = [];
+  if (razmjena && razmjena.requested && razmjena.requested.length) reqArr = razmjena.requested;
+
+  var offArr = [];
+  if (razmjena && razmjena.offered && razmjena.offered.length) offArr = razmjena.offered;
+%>
+
+<div class="exchange-card" style="margin-top:12px;">
+  <div class="exchange-head">
+    <div>
+      <p class="exchange-title">Razmjena #<%= razmjena.id %></p>
+      <div class="exchange-meta">Kupac ID: <%= kupacIdTekst %></div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span class="<%= badgeCls %>"><%= st %></span>
+      <a class="btn btn-ghost" href="/seller/exchanges">Nazad</a>
+    </div>
+  </div>
+
+  <div class="exchange-body">
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <div class="exchange-grid">
+      <div class="exchange-panel">
+        <div class="head">Tražene knjige</div>
+        <div class="body">
+          <% if (!reqArr || reqArr.length === 0) { %>
+            <div class="empty-state">Nema traženih knjiga.</div>
+          <% } else { %>
+            <div class="mini-books">
+              <% for (var i = 0; i < reqArr.length; i++) { %>
+                <%
+                  var r = reqArr[i];
+                  var b = (r && r.book) ? r.book : null;
+
+                  var naziv = "";
+                  var autor = "";
+                  var bid = "";
+
+                  if (b) {
+                    if (b.naziv != null) naziv = String(b.naziv);
+                    if (b.autor != null) autor = String(b.autor);
+                    if (b.id != null) bid = String(b.id);
+                  } else {
+                    if (r && r.bookId != null) bid = String(r.bookId);
+                  }
+
+                  var slika = "";
+                  if (b && b.glavnaSlikaUrl) slika = String(b.glavnaSlikaUrl);
+                %>
+
+                <div class="mini-book">
+                  <div class="mini-thumb">
+                    <% if (slika) { %>
+                      <img src="<%= slika %>" alt="cover" />
+                    <% } else { %>
+                      <span class="muted">Nema</span>
+                    <% } %>
+                  </div>
+                  <div>
+                    <% if (naziv) { %>
+                      <p class="mini-title"><%= naziv %></p>
+                      <p class="mini-author"><%= autor %></p>
+                      <p class="muted" style="margin:6px 0 0 0;">ID: <%= bid %></p>
+                    <% } else { %>
+                      <p class="mini-title">Book ID: <%= bid %></p>
+                      <p class="mini-author">Detalji nisu učitani.</p>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="exchange-panel">
+        <div class="head">Ponuđene knjige</div>
+        <div class="body">
+          <% if (!offArr || offArr.length === 0) { %>
+            <div class="empty-state">Nema ponuđenih knjiga.</div>
+          <% } else { %>
+            <div class="mini-books">
+              <% for (var j = 0; j < offArr.length; j++) { %>
+                <%
+                  var rr = offArr[j];
+                  var bb = (rr && rr.book) ? rr.book : null;
+
+                  var naziv2 = "";
+                  var autor2 = "";
+                  var bid2 = "";
+
+                  if (bb) {
+                    if (bb.naziv != null) naziv2 = String(bb.naziv);
+                    if (bb.autor != null) autor2 = String(bb.autor);
+                    if (bb.id != null) bid2 = String(bb.id);
+                  } else {
+                    if (rr && rr.bookId != null) bid2 = String(rr.bookId);
+                  }
+
+                  var slika2 = "";
+                  if (bb && bb.glavnaSlikaUrl) slika2 = String(bb.glavnaSlikaUrl);
+                %>
+
+                <div class="mini-book">
+                  <div class="mini-thumb">
+                    <% if (slika2) { %>
+                      <img src="<%= slika2 %>" alt="cover" />
+                    <% } else { %>
+                      <span class="muted">Nema</span>
+                    <% } %>
+                  </div>
+                  <div>
+                    <% if (naziv2) { %>
+                      <p class="mini-title"><%= naziv2 %></p>
+                      <p class="mini-author"><%= autor2 %></p>
+                      <p class="muted" style="margin:6px 0 0 0;">ID: <%= bid2 %></p>
+                    <% } else { %>
+                      <p class="mini-title">Book ID: <%= bid2 %></p>
+                      <p class="mini-author">Detalji nisu učitani.</p>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="exchange-actions">
+      <div class="section-card" style="width:100%;">
+        <div class="section-head">
+          <h3>Promijeni status</h3>
+        </div>
+        <div class="section-body">
+          <form method="post" action="/seller/exchanges/<%= razmjena.id %>/status" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <%
+              var s1 = ""; if (st === "Na_cekanju") s1 = "selected";
+              var s2 = ""; if (st === "Prihvacena") s2 = "selected";
+              var s3 = ""; if (st === "Odbijena") s3 = "selected";
+              var s4 = ""; if (st === "Zavrsena") s4 = "selected";
+              var s5 = ""; if (st === "Otkazana") s5 = "selected";
+            %>
+
+            <select name="status" required>
+              <option value="Na_cekanju" <%= s1 %>>Na cekanju</option>
+              <option value="Prihvacena" <%= s2 %>>Prihvacena</option>
+              <option value="Odbijena" <%= s3 %>>Odbijena</option>
+              <option value="Zavrsena" <%= s4 %>>Zavrsena</option>
+              <option value="Otkazana" <%= s5 %>>Otkazana</option>
+            </select>
+
+            <button class="btn btn-primary" type="submit">Sačuvaj</button>
+          </form>
+
+          <p class="muted" style="margin:10px 0 0 0;">
+            Napomena: status mijenjaj u skladu s pravilima tvoje logike (npr. nakon prihvatanja -> završeno).
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include("../partials/layout-bottom") %>

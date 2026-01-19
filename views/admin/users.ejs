@@ -1,3 +1,4 @@
+<!--
 <h1>Admin - Users</h1>
 <% if (error) { %><p style="color:red"><%= error %></p><% } %>
 
@@ -52,3 +53,138 @@
     </tr>
   <% }) %>
 </table>
+-->
+<%- include("../partials/layout-top") %>
+
+<div class="detail-top">
+  <div>
+    <div class="breadcrumb">Admin</div>
+    <h1 style="margin:6px 0 0 0;">Korisnici</h1>
+    <p class="muted" style="margin:6px 0 0 0;">Upravljanje rolama, statusima i blokadama.</p>
+  </div>
+
+  <div class="detail-actions">
+    <a class="btn btn-ghost" href="/">Nazad na početnu</a>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<% if (!users || users.length === 0) { %>
+  <div class="empty-state">Nema korisnika za prikaz.</div>
+<% } else { %>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding:14px; border-bottom:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div>
+        <div style="font-weight:950;">Lista korisnika</div>
+        <div class="muted">Ukupno: <%= users.length %></div>
+      </div>
+
+      <!-- Logout forma (po želji da bude ovdje umjesto u svakoj tabeli) -->
+      <form method="post" action="/auth/logout" style="margin:0;">
+        <button class="btn btn-ghost" type="submit">Logout</button>
+      </form>
+    </div>
+
+    <div style="padding:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px;">ID</th>
+            <th>Email</th>
+            <th>Ime</th>
+            <th style="width:120px;">Role</th>
+            <th style="width:140px;">Status</th>
+            <th style="width:170px;">Blokiran do</th>
+            <th style="width:420px;">Akcije</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% users.forEach(u => { %>
+            <%
+              var blokiranDoTxt = "";
+              if (u.blokiran_do) blokiranDoTxt = new Date(u.blokiran_do).toLocaleString();
+
+              var roleTxt = u.role != null ? String(u.role) : "";
+              var statusTxt = u.status != null ? String(u.status) : "";
+
+              // badge boje za status (optional)
+              var badgeCls = "badge";
+              if (statusTxt === "Aktivan") badgeCls = "badge badge-ok";
+              else if (statusTxt === "Deaktiviran") badgeCls = "badge badge-warn";
+              else if (statusTxt === "Arhiviran") badgeCls = "badge";
+              else if (statusTxt === "Blokiran") badgeCls = "badge badge-bad";
+            %>
+
+            <tr>
+              <td><%= u.id %></td>
+
+              <td>
+                <div style="font-weight:900;"><%= u.email %></div>
+              </td>
+
+              <td>
+                <div style="font-weight:900;"><%= u.ime %> <%= u.prezime %></div>
+                <div class="muted" style="margin-top:4px;">
+                  <span class="<%= badgeCls %>"><%= statusTxt || "-" %></span>
+                </div>
+              </td>
+
+              <td><%= roleTxt %></td>
+              <td><%= statusTxt %></td>
+              <td><%= blokiranDoTxt %></td>
+
+              <td>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+
+                  <!-- ROLE -->
+                  <form method="post" action="/admin/users/<%= u.id %>/role" style="display:flex; gap:8px; align-items:center; margin:0;">
+                    <select name="role">
+                      <option value="Admin"   <%= roleTxt === "Admin" ? "selected" : "" %>>Admin</option>
+                      <option value="Prodavac"<%= roleTxt === "Prodavac" ? "selected" : "" %>>Prodavac</option>
+                      <option value="Kupac"   <%= roleTxt === "Kupac" ? "selected" : "" %>>Kupac</option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">Role</button>
+                  </form>
+
+                  <!-- STATUS -->
+                  <form method="post" action="/admin/users/<%= u.id %>/status" style="display:flex; gap:8px; align-items:center; margin:0;">
+                    <select name="status">
+                      <option value="Aktivan"     <%= statusTxt === "Aktivan" ? "selected" : "" %>>Aktivan</option>
+                      <option value="Deaktiviran" <%= statusTxt === "Deaktiviran" ? "selected" : "" %>>Deaktiviran</option>
+                      <option value="Arhiviran"   <%= statusTxt === "Arhiviran" ? "selected" : "" %>>Arhiviran</option>
+                      <option value="Blokiran"    <%= statusTxt === "Blokiran" ? "selected" : "" %>>Blokiran</option>
+                    </select>
+                    <button class="btn btn-ghost" type="submit">Status</button>
+                  </form>
+
+                  <!-- BLOKIRAJ -->
+                  <form method="post" action="/admin/users/<%= u.id %>/block" style="display:flex; gap:8px; align-items:center; margin:0;">
+                    <select name="mode">
+                      <option value="15">15 dana</option>
+                      <option value="permanent">Zauvijek</option>
+                    </select>
+                    <button class="btn btn-danger" type="submit" onclick="return confirm('Blokirati korisnika?');">Blokiraj</button>
+                  </form>
+
+                  <!-- ODBLOKIRAJ -->
+                  <form method="post" action="/admin/users/<%= u.id %>/unblock" style="margin:0;">
+                    <button class="btn" type="submit">Odblokiraj</button>
+                  </form>
+
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<% } %>
+
+<%- include("../partials/layout-bottom") %>

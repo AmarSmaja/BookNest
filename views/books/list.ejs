@@ -1,3 +1,4 @@
+<!--
 <h1><%= title %></h1>
 
 <p><a href="/seller/books/new">+ Dodaj knjigu</a></p>
@@ -54,3 +55,124 @@
     </tbody>
   </table>
 <% } %>
+-->
+<%- include("../partials/layout-top") %>
+
+<h1><%= title %></h1>
+
+<% if (error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="detail-actions" style="margin-top:10px;">
+  <a class="btn btn-primary" href="/seller/books/new">+ Dodaj knjigu</a>
+</div>
+
+<div class="filters-card">
+  <div class="filters-head">
+    <h2>Filteri</h2>
+    <div class="muted">Moje knjige</div>
+  </div>
+
+  <div class="filters-body">
+    <form method="get" action="/seller/books">
+      <div class="filters-grid">
+        <div class="filters-row">
+          <label>Status</label>
+          <select name="status">
+            <option value="ALL" <%= filters.status === "ALL" ? "selected" : "" %>>Sve</option>
+            <option value="Aktivna" <%= filters.status === "Aktivna" ? "selected" : "" %>>Aktivna</option>
+            <option value="Rezervisana" <%= filters.status === "Rezervisana" ? "selected" : "" %>>Rezervisana</option>
+            <option value="Prodana/Razmjenjena" <%= filters.status === "Prodana/Razmjenjena" ? "selected" : "" %>>Prodana/Razmjenjena</option>
+            <option value="Arhivirana" <%= filters.status === "Arhivirana" ? "selected" : "" %>>Arhivirana</option>
+          </select>
+        </div>
+
+        <div class="filters-row">
+          <label>Sort</label>
+          <select name="sort">
+            <option value="newest" <%= filters.sort === "newest" ? "selected" : "" %>>Najnovije</option>
+            <option value="price_asc" <%= filters.sort === "price_asc" ? "selected" : "" %>>Cijena ↑</option>
+            <option value="price_desc" <%= filters.sort === "price_desc" ? "selected" : "" %>>Cijena ↓</option>
+            <option value="name_asc" <%= filters.sort === "name_asc" ? "selected" : "" %>>Naziv A–Z</option>
+          </select>
+        </div>
+
+        <div class="filters-row">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" type="submit">Primijeni</button>
+        </div>
+
+        <div class="filters-row">
+          <label>&nbsp;</label>
+          <a class="btn btn-ghost" href="/seller/books">Reset</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (!knjige || knjige.length === 0) { %>
+  <div class="empty-state">Nema knjiga za prikaz.</div>
+<% } else { %>
+
+  <div class="results-bar">
+    <div class="results-count">
+      Ukupno: <%= knjige.length %>
+    </div>
+  </div>
+
+  <div class="books-grid">
+    <% for (var i = 0; i < knjige.length; i++) { %>
+      <% var b = knjige[i]; %>
+
+      <%
+        var naziv = b && b.naziv != null ? String(b.naziv) : "Knjiga";
+        var autor = b && b.autor != null ? String(b.autor) : "";
+        var cover = b && b.glavnaSlikaUrl ? String(b.glavnaSlikaUrl) : "";
+        var cijenaTxt = (b && b.cijena != null) ? String(b.cijena) : "";
+        var statusTxt = (b && b.status != null) ? String(b.status) : "";
+        var razmjenaTxt = (b && (b.spremnaZaRazmjenu === true || b.spremnaZaRazmjenu === "true")) ? "DA" : "NE";
+
+        var badgeClass = "badge";
+        if (statusTxt === "Aktivna") badgeClass = "badge badge-ok";
+        else if (statusTxt === "Rezervisana") badgeClass = "badge badge-warn";
+        else if (statusTxt === "Prodana/Razmjenjena") badgeClass = "badge badge-bad";
+        else if (statusTxt === "Arhivirana") badgeClass = "badge";
+      %>
+
+      <div class="book-card">
+        <a class="book-link" href="/seller/books/<%= b.id %>/edit">
+          <div class="book-cover">
+            <% if (cover) { %>
+              <img src="<%= cover %>" alt="cover" />
+            <% } else { %>
+              <div class="book-cover-empty">Nema slike</div>
+            <% } %>
+          </div>
+
+          <div class="book-meta">
+            <div class="book-title"><%= naziv %></div>
+            <% if (autor) { %>
+              <div class="book-author"><%= autor %></div>
+            <% } %>
+
+            <div class="book-small">
+              <span class="<%= badgeClass %>"><%= statusTxt || "Status" %></span>
+              <span style="margin-left:8px;" class="muted">Razmjena: <%= razmjenaTxt %></span>
+            </div>
+
+            <div class="book-footer">
+              <span class="link-like">Uredi</span>
+              <% if (cijenaTxt) { %>
+                <span class="book-price"><%= cijenaTxt %> KM</span>
+              <% } %>
+            </div>
+          </div>
+        </a>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
+<%- include("../partials/layout-bottom") %>

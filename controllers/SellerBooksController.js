@@ -57,8 +57,7 @@ class SellerBooksController {
                 lookups, 
                 error: e.message,
                 values: req.body,
-                bookId: req.params.id,
-                kolicinaDostupno: kolicinaDostupno,
+                bookId: req.params.id
             });
         }
     }
