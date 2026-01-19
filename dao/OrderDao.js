@@ -14,12 +14,31 @@ class OrderDao {
         });
     }
 
+    findOneByOrderAndBook(orderId, bookId, t) {
+        const opts = { where: { orderId, bookId } };
+        if (t) opts.transaction = t;
+        return db.OrderItem.findOne(opts);
+    }
+
     async getOrderItemsWithBooks(orderId) {
         return db.OrderItem.findAll({
             where: { orderId },
             include: [{ model: db.Book, as: "knjiga", required: false }],
             order: [["id", "ASC"]],
         });
+    }
+
+    findFinishedByBuyerForBook(buyerId, bookId, t) {
+        const opts = {
+            where: { bookId },
+            include: [{
+                model: db.Order,
+                required: true,
+                where: { kupacId: buyerId, status: "Zavrsena" },
+            }],
+        };
+        if (t) opts.transaction = t;
+        return db.OrderItem.findOne(opts);
     }
 
     async getOrderBookIds(orderId, transaction) {

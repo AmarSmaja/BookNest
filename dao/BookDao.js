@@ -414,6 +414,12 @@ class BookDao {
 
             return redovi[0] || null;
     }
+
+    findById(id, t) {
+        const opts = {};
+        if (t) opts.transaction = t;
+        return db.Book.findByPk(id, opts);
+    }
 }
 
 module.exports = new BookDao();

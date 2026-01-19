@@ -1,8 +1,8 @@
-const db = require("../models");
 const bookService = require("../services/BookService");
 const bookCommentService = require("../services/BookCommentService");
 const BookRatingService = require("../services/BookRatingService");
 const popularBooksService = require("../services/PopularBooksService");
+const bookAccessService = require("../services/BookAccessService");
 
 class BooksController {
     async detail(req, res) {
@@ -12,103 +12,41 @@ class BooksController {
         const knjiga = await bookService.getBookDetail(id);
         if (!knjiga) return res.status(404).send("Nije pronadjeno!");
 
-        let currentUser = null;
-        if (req.session && req.session.user) {
-            currentUser = req.session.user;
-        }
+        const currentUser = req.session?.user || null;
+        const access = await bookAccessService.computeAccess(currentUser, knjiga);
 
-        let vidljivo = true;
-        if (knjiga.status !== "Aktivna") {
-            vidljivo = false;
-
-            if (currentUser) {
-                if (currentUser && currentUser.role === "Admin") vidljivo = true;
-                if (currentUser.id === knjiga.prodavacId) vidljivo = true;
-
-                if (!vidljivo) {
-                    const orderItem = await db.OrderItem.findOne({
-                        where: { bookId: knjiga.id },
-                        include: [{
-                            model: db.Order,
-                            required: true,
-                            where: { kupacId: currentUser.id, status: "Zavrsena" },
-                        }],
-                    });
-
-                    if (orderItem) vidljivo = true;
-                }
-            }
-        }
-
-        if (!vidljivo) return res.status(403).send("Nemate pristup ovoj knjizi!");
-
-        if (knjiga.status === "Arhivirana") {
-            if (!currentUser || currentUser.role !== "Admin") {
-                return res.status(404).send("Nije pronadjeno!");
-            }
-        }
-
-        let canBuy = false;
-        let canExchange = false;
-        let canReport = false;
-        let canChat = false;
-
-        if (currentUser) {
-            const nijeMoja = (currentUser.id !== knjiga.prodavacId);
-            const aktivna = (knjiga.status === "Aktivna");
-            const exchangeable = (knjiga.spremnaZaRazmjenu === true || knjiga.spremnaZaRazmjenu === 1 || knjiga.spremnaZaRazmjenu === "1" || knjiga.spremnaZaRazmjenu === "true");
-
-            if (nijeMoja && aktivna) {
-                canBuy = true;
-                canReport = true;
-                canChat = true;
-
-                if (exchangeable) {
-                    canExchange = true;
-                    console.log(knjiga.spremnaZaRazmjenu, typeof knjiga.spremnaZaRazmjenu);
-                }
-            }
-            console.log(knjiga.spremnaZaRazmjenu, typeof knjiga.spremnaZaRazmjenu);
-        }
-
-        let isAdmin = false;
-        if (currentUser && currentUser.role === "Admin") {
-            isAdmin = true;
-        }
-
-        let lastOrderIdForRating = null;
+        if (access.izbaci404) return res.status(404).send("Nije pronadjeno!");
+        if (!access.vidljivo) return res.status(403).send("Nemate pristup toj knjizi!");
 
         const komentari = await bookCommentService.izlistajKnjigu(id);
         const ratingStats = await BookRatingService.getStatsZaKnjigu(id);
         const ratings = await BookRatingService.listajZaKnjigu(id, 10);
 
-        res.render("books/detail", {
-            title: knjiga.naziv,
-            knjiga,
-            canBuy,
-            canExchange,
-            canReport,
+        return res.render("books/detail", { 
+            title: knjiga.naziv, knjiga, 
+            canBuy: access.canBuy, 
+            canExchange: access.canExchange, 
+            canReport: access.canReport, 
+            canChat: access.canChat, 
             komentari,
             currentUser,
-            isAdmin,
-            canChat,
+            isAdmin: access.isAdmin,
             ratingStats,
             ratings,
-            lastOrderIdForRating,
+            lastOrderIdForRating: null,
             error: null,
         });
     }
 
     async popular(req, res) {
         let limit = 10;
-        if (req.query && req.query.limit != null) {
+        if (req.query?.limit != null) {
             const n = Number(req.query.limit);
             if (Number.isFinite(n) && n > 0) limit = n;
         }
 
         const books = await popularBooksService.listPopular(limit);
-
-        return res.render("books/popular", { title: "Najpopularnije knjige", books: books, error: null });
+        return res.render("books/popular", { title: "Najpopularnije knjige", books, error: null });
     }
 }
 

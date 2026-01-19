@@ -1,11 +1,12 @@
 const db = require("../models");
 const bookRatingDao = require("../dao/BookRatingDao");
 const notificationDao = require("../dao/NotificationDao");
+const orderDao = require("../dao/OrderDao");
+const bookDao = require("../dao/BookDao");
 
 class BookRatingService {
     async ostaviOcjenuZaNarudzbu(user, orderId, bookId, ocjena) {
         if (!user) throw new Error("Nisi logovan!");
-        //if (user.role !== "Kupac") throw new Error("Samo kupac moze ostaviti ocjenu!");
 
         const oid = Number(orderId);
         if (!Number.isFinite(oid)) throw new Error("Neispravan ID narudzbe!");
@@ -67,6 +68,28 @@ class BookRatingService {
         const bid = Number(bookId);
         if (!Number.isFinite(bid)) return [];
         return bookRatingDao.listForBook(bid, limit);
+    }
+
+    async getNewRatingData(orderIdRaw, bookIdRaw) {
+        const orderId = Number(orderIdRaw);
+        const bookId = Number(bookIdRaw);
+
+        if (!Number.isFinite(orderId)) throw new Error("Neispravan ID narudzbe!");
+        if (!Number.isFinite(bookId)) throw new Error("Neispravan ID knjige!");
+
+        const knjiga = await bookDao.findById(bookId);
+        if (!knjiga) throw new Error("Knjiga nije pronadjena!");
+
+        const item = await orderDao.findOneByOrderAndBook(orderId, bookId);
+        if (!item) throw new Error("Ova knjiga nije u toj narudzbi!");
+
+        return { orderId, bookId, knjiga };
+    }
+
+    async getBookOrNull(bookIdRaw) {
+        const bookId = Number(bookIdRaw);
+        if (!Number.isFinite(bookId)) return null;
+        return bookDao.findById(bookId);
     }
 }
 

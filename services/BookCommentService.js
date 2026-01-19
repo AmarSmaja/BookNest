@@ -1,11 +1,11 @@
 const db = require("../models");
 const bookCommentDao = require("../dao/BookCommentDao");
 const notificationDao = require("../dao/NotificationDao");
+const bookDao = require("../dao/BookDao");
 
 class BookCommentService {
     async ostaviKomentarZaNarudzbu(user, orderId, bookId, sadrzaj) {
         if (!user) throw new Error("Nisi logovan!");
-        // if (user.role !== "Kupac") throw new Error("Samo kupac moze ostaviti komentar!");
 
         const oid = Number(orderId);
         if (!Number.isFinite(oid)) throw new Error("Neispravan ID narudzbe!");
@@ -88,6 +88,25 @@ class BookCommentService {
             await bookCommentDao.markDeleted(cid, t);
             return true;
         });
+    }
+
+    async uzmiNovePodatkeKomentara(orderIdRaw, bookIdRaw) {
+        const orderId = Number(orderIdRaw);
+        const bookId = Number(bookIdRaw);
+
+        if (!Number.isFinite(orderId)) throw new Error("Neispravan orderId!");
+        if (!Number.isFinite(bookId)) throw new Error("Neispravan bookId!");
+
+        const knjiga = await bookDao.findById(bookId);
+        if (!knjiga) throw new Error("Knjiga nije pronadjena!");
+
+        return { orderId, bookId, knjiga };
+    }
+
+    async getBookOrNull(bookIdRaw) {
+        const bookId = Number(bookIdRaw);
+        if (!Number.isFinite(bookId)) return null;
+        return bookDao.findById(bookId);
     }
 }
 

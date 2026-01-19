@@ -21,8 +21,6 @@ class UsersController {
 
     async updateMe(req, res) {
         try {
-            console.log("BODY:", req.body);
-            console.log("profileImageUrl from body:", req.body.profileImageUrl);
             await userService.updateMe(req.session.user, req.body);
 
             const fresh = await userService.getMe(req.session.user);

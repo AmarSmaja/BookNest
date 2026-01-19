@@ -54,6 +54,7 @@ app.use("/seller", require("./routes/sellerBooks"));
 app.use("/seller", require("./routes/sellerApproving"));
 
 app.use("/admin", require("./routes/adminDashboard"));
+app.use("/admin/lookups", require("./routes/adminLookups"));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

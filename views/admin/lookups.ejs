@@ -1,59 +1,3 @@
-<!--
-<h1><%= title %></h1>
-
-<div style="margin: 10px 0;">
-  <a href="/admin/lookups/genres">Žanrovi</a> |
-  <a href="/admin/lookups/languages">Jezici</a> |
-  <a href="/admin/lookups/conditions">Stanja</a> |
-  <a href="/admin/lookups/tags">Tagovi</a> |
-  <a href="/admin/lookups/cities">Gradovi</a>
-</div>
-
-<% if (error) { %>
-  <p style="color:red"><%= error %></p>
-<% } %>
-
-<h3>Dodaj novi</h3>
-<form method="post" action="/admin/lookups/<%= type %>/create">
-  <input name="naziv" placeholder="Naziv" required />
-  <button type="submit">Dodaj</button>
-</form>
-
-<hr />
-
-<h3>Postojeći</h3>
-
-<% if (!rows || rows.length === 0) { %>
-  <p>Nema zapisa.</p>
-<% } else { %>
-  <table border="1" cellpadding="6" cellspacing="0">
-    <tr>
-      <th>ID</th>
-      <th>Naziv</th>
-      <th>Update</th>
-      <th>Delete</th>
-    </tr>
-
-    <% for (var i = 0; i < rows.length; i++) { %>
-      <tr>
-        <td><%= rows[i].id %></td>
-        <td>
-          <form method="post" action="/admin/lookups/<%= type %>/<%= rows[i].id %>/update">
-            <input name="naziv" value="<%= rows[i].naziv %>" required />
-            <button type="submit">Sačuvaj</button>
-          </form>
-        </td>
-        <td></td>
-        <td>
-          <form method="post" action="/admin/lookups/<%= type %>/<%= rows[i].id %>/delete" onsubmit="return confirm('Obrisati?');">
-            <button type="submit">Obriši</button>
-          </form>
-        </td>
-      </tr>
-    <% } %>
-  </table>
-<% } %>
--->
 <%- include("../partials/layout-top") %>
 
 <div class="detail-top">
@@ -94,6 +38,7 @@
     <h3>Dodaj novi zapis</h3>
   </div>
   <div class="section-body">
+    <!-- OVO JE OK za stari ruter -->
     <form method="post" action="/admin/lookups/<%= type %>/create">
       <div class="filters-grid" style="grid-template-columns: 1fr auto;">
         <div class="filters-row">
@@ -133,7 +78,9 @@
                 <td><%= rows[i].id %></td>
 
                 <td>
-                  <form method="post" action="/admin/lookups/<%= type %>/<%= rows[i].id %>/update" style="display:flex; gap:10px; align-items:center;">
+                  <form method="post"
+                        action="/admin/lookups/<%= type %>/<%= rows[i].id %>/update"
+                        style="display:flex; gap:10px; align-items:center;">
                     <input name="naziv" value="<%= rows[i].naziv %>" required style="width:100%; max-width:520px;" />
                     <button class="btn btn-ghost" type="submit">Sačuvaj</button>
                   </form>

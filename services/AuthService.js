@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const userDao = require("../dao/UserDao");
 const db = require("../models");
 const userInterestsDao = require("../dao/UserInterestsDao");
+const lookupDao = require("../dao/LookupDao");
 
 class AuthService {
     _normalizeIdList(value) {
@@ -84,6 +85,10 @@ class AuthService {
         if (!ok) throw new Error("Neispravan email ili password.");
 
         return user;
+    }
+
+    async getRegisterData() {
+        return lookupDao.getRegisterLookups();
     }
 }
 
