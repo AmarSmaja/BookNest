@@ -235,6 +235,27 @@ class ChatService {
       return msg;
     });
   }
+
+  async startConversationFromBook(meId, bookId) {
+    const id = Number(bookId);
+    if (!Number.isFinite(id)) throw new Error("Neispravan ID knjige!");
+
+    const book = await db.Book.findByPk(id);
+    if (!book) throw new Error("Knjiga nije pronadjena!");
+
+    let other = null;
+
+    if (book.sellerId !== undefined && book.sellerId !== null) {
+      other = Numer(book.sellerId);
+    } else if (book.prodavacId !== undefined && book.prodavacId !== null) {
+      other = Number(book.prodavacId);
+    }
+
+    if (!Number.isFinite(other)) throw new Error("Neispravan ID prodavaca!");
+    if (Number(meId) === Number(other)) throw new Error("Ne mozes zapoceti chat sa samim sobom!");
+
+    return this.getOrCreateConversation(meId, other);
+  }
 }
 
 module.exports = new ChatService();

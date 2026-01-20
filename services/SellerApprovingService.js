@@ -1,8 +1,14 @@
 const db = require("../models");
 const sellerProfileDao = require("../dao/SellerProfileDao");
 const notificationDao = require("../dao/NotificationDao");
+const lookupDao = require("../dao/LookupDao");
 
 class SellerApprovingService {
+    async getApplyPageData(user) {
+        const cities = await lookupDao.listCities();
+        return { cities: cities };
+    }
+
     async podnesiZahtjev(user, formData) {
         if (!user) throw new Error("Nisi logovan!");
 

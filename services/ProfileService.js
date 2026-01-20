@@ -1,6 +1,6 @@
-const db = require("../models");
 const lookupDao = require("../dao/LookupDao");
 const userInterestsDao = require("../dao/UserInterestsDao");
+const db = require("../models");
 
 class ProfileService {
     _normalizeIdList(value) {
@@ -35,6 +35,40 @@ class ProfileService {
         return ids;
     }
 
+    normalizeInterests(body) {
+        const zanrovi = body ? body.zanrovi : null;
+        const jezici = body ? body.jezici : null;
+
+        const genreIds = [];
+        const languageIds = [];
+
+        if (zanrovi !== undefined && zanrovi !== null) {
+            if (Array.isArray(zanrovi)) {
+                for (let i = 0; i < zanrovi.length; i++) {
+                    const gid = Number(zanrovi[i]);
+                    if (Number.isFinite(gid) && gid > 0) genreIds.push(gid);
+                }
+            } else {
+                const gid2 = Number(zanrovi);
+                if (Number.isFinite(gid2) && gid2 > 0) genreIds.push(gid2);
+            }
+        }
+
+        if (jezici !== undefined && jezici !== null) {
+            if (Array.isArray(jezici)) {
+                for (let j = 0; j < jezici.length; j++) {
+                    const lid = Number(jezici[j]);
+                    if (Number.isFinite(lid) && lid > 0) languageIds.push(lid);
+                }
+            } else {
+                const lid2 = Number(jezici);
+                if (Number.isFinite(lid2) && lid2 > 0) languageIds.push(lid2);
+            }
+        }
+
+        return { genreIds: genreIds, languageIds: languageIds };
+    }
+
     async getInterestsFormData(userId) {
         const lookups = await lookupDao.getBookFormLookups();
         const ids = await userInterestsDao.getInterestIds(userId);
@@ -54,6 +88,22 @@ class ProfileService {
         return db.sequelize.transaction(async (t) => {
             await userInterestsDao.setInterests(userId, genreIds, languageIds, t);
         });
+    }
+
+    async saveInterests(userId, body) {
+        if (!Number.isFinite(Number(userId))) throw new Error("Neispravan korisnik!");
+
+        const normalized = this.normalizeInterests(body);
+        const genreIds = normalized.genreIds;
+        const languageIds = normalized.languageIds;
+
+        const lookups = await lookupDao.getRegisterLookups();
+
+        await db.sequelize.transaction(async (t) => {
+            await userInterestsDao.setInterests(userId, genreIds, languageIds, t);
+        });
+
+        return { genres: lookups.genres, languages: lookups.languages, selectedGenreIds: genreIds, selectedLanguageIds: languageIds };
     }
 }
 

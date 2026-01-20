@@ -1,93 +1,92 @@
-const db = require("../models");
 const chatService = require("../services/ChatService");
 
 class ChatController {
     async list(req, res) {
         const rows = await chatService.listForUser(req.session.user.id);
 
-        var conversations = [];
+        let conversations = [];
 
-        for (var i = 0; i < rows.length; i++) {
-            var r = rows[i];
+        for (let i = 0; i < rows.length; i++) {
+            let r = rows[i];
 
-            var convo = r.conversation;
-            var other = r.otherUser;
-            var last = r.lastMessage;
+            let convo = r.conversation;
+            let other = r.otherUser;
+            let last = r.lastMessage;
 
-            var id = null;
+            let id = null;
             if (convo && convo.id !== undefined && convo.id !== null) {
                 id = convo.id;
             }
 
-            var otherName = "Korisnik";
+            let otherName = "Korisnik";
             if (other) {
-                var ime = "";
+                let ime = "";
                 if (other.ime !== undefined && other.ime !== null) ime = String(other.ime);
 
-                var prezime = "";
+                let prezime = "";
                 if (other.prezime !== undefined && other.prezime !== null) prezime = String(other.prezime);
-
-                var full = (ime + " " + prezime).trim();
-                if (full.length > 0) otherName = full;
-                else if (other.email !== undefined && other.email !== null) otherName = String(other.email);
+                
+                let full = (ime + " " + prezime).trim();
+                if (full.length > 0) {
+                    otherName = full;
+                } else {
+                    if (other.email !== undefined && other.email !== null) {
+                        otherName = String(other.email);
+                    }
+                }
             }
 
-            var lastMessageText = "";
+            let lastMessageText = "";
             if (last) {
                 if (last.sadrzaj !== undefined && last.sadrzaj !== null) lastMessageText = String(last.sadrzaj);
                 else if (last.text !== undefined && last.text !== null) lastMessageText = String(last.text);
                 else if (last.body !== undefined && last.body !== null) lastMessageText = String(last.body);
             }
 
-            var lastMessageAt = null;
-            if (last && last.createdAt) lastMessageAt = last.createdAt;
-            else if (convo && convo.zadnjaPorukaAt) lastMessageAt = convo.zadnjaPorukaAt;
-
-            var unreadCount = 0;
-            if (r.unreadCount !== undefined && r.unreadCount !== null) {
-                unreadCount = Number(r.unreadCount);
-                if (!Number.isFinite(unreadCount) || unreadCount < 0) unreadCount = 0;
+            let lastMessageAt = null;
+            if (last && last.createdAt) {
+                lastMessageAt = last.createdAt;
+            } else {
+                if (convo && convo.zadnjaPorukaAt) {
+                    lastMessageAt = convo.zadnjaPorukaAt;
+                }
             }
 
-            conversations.push({
-                id: id,
-                otherUserName: otherName,
-                lastMessageText: lastMessageText,
-                lastMessageAt: lastMessageAt,
-                unreadCount: unreadCount
-            });
+            let unreadCount = 0;
+            if (r.unreadCount !== undefined && r.unreadCount !== null) {
+                let n = Number(r.unreadCount);
+                if (Number.isFinite(n) && n >= 0) unreadCount = n;
+            }
+
+            conversations.push({ id: id, otherUserName: otherName, lastMessageText: lastMessageText, lastMessageAt: lastMessageAt, unreadCount: unreadCount });
         }
 
-        return res.render("chat/list", {
-            title: "Chat",
-            conversations: conversations,
-            rows: conversations,
-            error: null
-        });
+        return res.render("chat/list", { title: "Chat", conversations: conversations, rows: conversations, error: null });
     }
 
     async startFromBook(req, res) {
-        const bookId = Number(req.query.bookId);
-        if (!Number.isFinite(bookId)) return res.status(400).send("Neispravan ID knjige!");
+        try {
+            let bookId = Number(req.query.bookId);
+            if (!Number.isFinite(bookId)) return res.status(400).send("Neispravan ID knjige!");
 
-        const book = await db.Book.findByPk(bookId);
-        if (!book) return res.status(404).send("Knjiga nije pronadjena!");
+            let meId = null;
+            if (req.session && req.session.user && req.session.user.id !== undefined && req.session.user.id !== null) {
+                meId = req.session.user.id;
+            }
+            if (!meId) return res.status(401).send("Nisi logovan!");
 
-        const me = req.session.user.id;
-        let other = null;
+            const convo = await chatService.startConversationFromBook(meId, bookId);
+            return res.redirect("/chat/" + convo.id);
+        } catch (e) {
+            let msg = "Greska";
+            if (e && e.message) msg = e.message;
 
-        if (book.sellerId !== undefined && book.sellerId !== null) {
-            other = Number(book.sellerId);
-        } else if (book.prodavacId !== undefined && book.prodavacId !== null) {
-            other = Number(book.prodavacId);
+            if (msg.indexOf("Neispravan") >= 0) return res.status(400).send(msg);
+            if (msg.indexOf("nije pronadjena") >= 0 || msg.indexOf("nije prona") >= 0) return res.status(404).send(msg);
+            if (msg.indexOf("samim sobom") >= 0) return res.status(400).send(msg);
+            
+            return res.status(400).send(msg);
         }
-
-        if (!Number.isFinite(other)) return res.status(400).send("Neispravan ID prodavaca!");
-
-        if (me === other) return res.status(400).send("Ne mozes zapoceti chat sa samim sobom!");
-
-        const convo = await chatService.getOrCreateConversation(me, other);
-        return res.redirect("/chat/" + convo.id);
     }
 
     async start(req, res) {

@@ -21,6 +21,10 @@ class LookupDao {
         return { genres, languages };
     }
 
+    async listCities() {
+        return db.City.findAll({ order: [["naziv", "ASC"]] });
+    }
+
     getModel(type) {
         const t = String(type || "").trim();
         const Model = getModelByType(t);

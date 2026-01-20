@@ -1,9 +1,8 @@
-const AuthService = require("../services/AuthService");
 const authService = require("../services/AuthService");
 
 class AuthController {
     async showRegister(req, res) {
-        const data = await AuthService.getRegisterData();
+        const data = await authService.getRegisterData();
         res.render("auth/register", { error: null, genres: data.genres, languages: data.languages });
     }
 
@@ -20,7 +19,7 @@ class AuthController {
             await authService.register({ ime, prezime, email, password, zanrovi, jezici });
             return res.redirect("/auth/login");
         } catch (e) {
-            const data = await AuthService.getRegisterData();
+            const data = await authService.getRegisterData();
             return res.status(400).render("auth/register", { error: e.message, genres: data.genres, languages: data.languages });
         }
     }
