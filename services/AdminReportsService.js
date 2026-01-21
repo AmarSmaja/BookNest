@@ -1,5 +1,8 @@
 const db = require("../models");
 const notificationDao = require("../dao/NotificationDao");
+const adminStatsDao = require("../dao/AdminStatsDao");
+const bookDao = require("../dao/BookDao");
+const userDao = require("../dao/UserDao");
 
 const STATUS = {
     OTVOREN: "Otvoren",
@@ -41,27 +44,24 @@ function dozvoljenPrijelaz(from, to) {
 
 class AdminReportsService {
     async listOpen() {
-        return db.Report.findAll({
-            where: { status: [STATUS.OTVOREN, STATUS.U_OBRADI], },
-            order: [["id", "DESC"]],
-        });
+        return adminStatsDao.listOpen()
     }
 
     async getDetail(reportId) {
         const id = Number(reportId);
         if (!Number.isFinite(id)) return null;
 
-        const report = await db.Report.findByPk(id);
+        const report = await adminStatsDao.findById(id);
         if (!report) return null;
 
         let targetBook = null;
         if (report.prijavljenaKnjigaId != null) {
-            targetBook = await db.Book.findByPk(report.prijavljenaKnjigaId);
+            targetBook = await bookDao.findById(report.prijavljenaKnjigaId);
         }
 
         let targetUser = null;
         if (report.prijavljeniUserId != null) {
-            targetUser = await db.User.findByPk(report.prijavljeniUserId);
+            targetUser = await userDao.findById(report.prijavljeniUserId);
         }
 
         return { report: report, targetBook: targetBook, targetUser: targetUser };
@@ -84,7 +84,7 @@ class AdminReportsService {
         if (!statusValidan(status)) throw new Error("Neispravan status!");
 
         return db.sequelize.transaction(async (t) => {
-            const report = await db.Report.findByPk(id, { transaction: t });
+            const report = await adminStatsDao.findById(id, t);
             if (!report) throw new Error("Report nije pronadjen!");
 
             if (!dozvoljenPrijelaz(report.status, status)) {
@@ -96,10 +96,7 @@ class AdminReportsService {
                 rijesioAdminId = adminUser.id;
             }
 
-            await db.Report.update(
-                { status: status, rijesioAdminId: rijesioAdminId },
-                { where: { id: id }, transaction: t }
-            );
+            await adminStatsDao.updateStatusAndResolver(id, status, rijesioAdminId, t);
 
             if (status === STATUS.RIJESEN || status === STATUS.ODBIJEN) {
                 await notificationDao.create({
@@ -120,18 +117,15 @@ class AdminReportsService {
         if (!Number.isFinite(id)) throw new Error("Neispravan ID reporta!");
 
         return db.sequelize.transaction(async (t) => {
-            const report = await db.Report.findByPk(id, { transaction: t });
+            const report = await adminStatsDao.findById(id, t);
             if (!report) throw new Error("Report nije pronadjen!");
 
             if (report.prijavljenaKnjigaId == null) throw new Error("Ovaj report nema target knjigu!");
 
-            const book = await db.Book.findByPk(report.prijavljenaKnjigaId, { transaction: t });
+            const book = await bookDao.findById(report.prijavljenaKnjigaId, t);
             if (!book) throw new Error("Knjiga nije pronadjena!");
 
-            await db.Book.update(
-                { status: "Arhivirana" },
-                { where: { id: book.id }, transaction: t }
-            );
+            await adminStatsDao.updateBookStatus(book.id, "Arhivirana", t);
 
             return true;
         });
@@ -144,18 +138,15 @@ class AdminReportsService {
         if (!Number.isFinite(id)) throw new Error("Neispravan ID reporta!");
 
         return db.sequelize.transaction(async (t) => {
-            const report = await db.Report.findByPk(id, { transaction: t });
+            const report = adminStatsDao.findById(id, t);
             if (!report) throw new Error("Report nije pronadjen!");
 
             if (report.prijavljenaKnjigaId == null) throw new Error("Ovaj report nema target knjigu!");
 
-            const book = await db.Book.findByPk(report.prijavljenaKnjigaId, { transaction: t });
+            const book = await bookDao.findById(report.prijavljenaKnjigaId, t);
             if (!book) throw new Error("Knjiga nije pronadjena!");
 
-            await db.Book.update(
-                { status: "Aktivna" },
-                { where: { id: book.id }, transaction: t }
-            );
+            await adminStatsDao.updateBookStatus(book.id, "Aktivna", t);
 
             return true;
         });

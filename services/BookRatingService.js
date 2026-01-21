@@ -16,40 +16,25 @@ class BookRatingService {
 
         const r = Number(ocjena);
         if (!Number.isFinite(r) || r < 1 || r > 5) throw new Error("Ocjena mora biti u rasponu od 1 do 5!");
-        
-        const knjiga = await db.Book.findByPk(bid);
-        if (!knjiga) throw new Error("Knjiga ne postoji!");
-        if (knjiga.prodavacId === user.id) throw new Error("Ne mozes ocjeniti svoju knjigu!");
-
-        const narudzba = await db.Order.findOne({ where: { id: oid, kupacId: user.id } });
-        if (!narudzba) throw new Error("Narudzba nije pronadjena!");
-        if (narudzba.status !== "Zavrsena") throw new Error("Mozes ocjeniti tek nakon zavrsene narudzbe!");
-
-        const stavka = await db.OrderItem.findOne({ where: { orderId: oid, bookId: bid } });
-        if (!stavka) throw new Error("Ova knjiga nije u toj narudzbi!");
-
-        const postoji = await bookRatingDao.findByBuyerAndBook(user.id, bid);
-        if (postoji) throw new Error("Vec si ocijenio ovu knjigu!");
 
         return db.sequelize.transaction(async (t) => {
-            const rating = await bookRatingDao.create({
-                bookId: bid, 
-                kupacId: user.id,
-                orderId: oid,
-                ocjena: r,
-            }, t);
+            const knjiga = await bookDao.findById(bid, t);
+            if (!knjiga) throw new Error("Knjiga ne postoji!");
+            if (Number(knjiga.prodavacId) === Number(user.id)) throw new Error("Ne mozes ocijeniti svoju knjigu!");
 
-            await notificationDao.create({
-                userId: knjiga.prodavacId,
-                tip: "Nova_ocjena_knjige",
-                payloadJson: {
-                    bookId: bid,
-                    kupacId: user.id,
-                    orderId: oid,
-                    ocjena: r,
-                    ratingId: rating.id
-                },
-            }, t);
+            const narudzba = await orderDao.findOwnedByBuyer(oid, user.id, t);
+            if (!narudzba) throw new Error("Narudzba nije pronadjena!");
+            if (narudzba.status !== "Zavrsena") throw new Error("Mozes ocijeniti tek nakon zavrsene narudzbe");
+
+            const stavka = await orderDao.findOneByOrderAndBook(oid, bid, t);
+            if (!stavka) throw new Error("Ova knjiga nije u toj narudzbi!");
+
+            const postoji = await bookRatingDao.findByBuyerAndBook(user.id, bid, t);
+            if (postoji) throw new Error("Vec si ocijenio ovu knjigu!");
+
+            const rating = await bookRatingDao.create({ bookId: bid, kupacId: user.id, orderId: oid, ocjena: r }, t);
+
+            await notificationDao.create({ userId: knjiga.prodavacId, tip: "Nova_ocjena_knjige", payloadJson: { bookId: bid, kupacId: user.id, orderId: oid, ocjena: r, ratingId: rating.id } }, t);
 
             return rating;
         });
@@ -57,9 +42,7 @@ class BookRatingService {
 
     async getStatsZaKnjigu(bookId) {
         const bid = Number(bookId);
-        if (!Number.isFinite(bid)) {
-            return { brojOcjena: 0, prosjekOcjena: null };
-        }
+        if (!Number.isFinite(bid)) return { brojOcjena: 0, prosjekOcjena: null };
 
         return bookRatingDao.statsForBook(bid);
     }

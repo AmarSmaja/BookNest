@@ -2,6 +2,8 @@ const db = require("../models");
 const sellerProfileDao = require("../dao/SellerProfileDao");
 const notificationDao = require("../dao/NotificationDao");
 const lookupDao = require("../dao/LookupDao");
+const adminStatsDao = require("../dao/AdminStatsDao");
+const userDao = require("../dao/UserDao");
 
 class SellerApprovingService {
     async getApplyPageData(user) {
@@ -48,22 +50,13 @@ class SellerApprovingService {
                 reviewedAt: null,
             }, t);
 
-            const admini = await db.User.findAll({
-                where: { role: "Admin" },
-                attributes: ["id"],
-                raw: true,
-                transaction: t,
-            });
+            const admini = await adminStatsDao.listAdminIds(t);
 
             for (let i = 0; i < admini.length; i++) {
                 const adminId = Number(admini[i].id);
                 if (!Number.isFinite(adminId)) continue;
 
-                await notificationDao.create({
-                    userId: adminId,
-                    tip: "Zahtjev_prodavac",
-                    payloadJson: { sellerUserId: user.id },
-                }, t);
+                await notificationDao.create({ userId: adminId, tip: "Zahtjev_prodavac", payloadJson: { sellerUserId: user.id }, }, t);
             }
 
             return profil;
@@ -80,27 +73,27 @@ class SellerApprovingService {
 
         for (let i = 0; i < profili.length; i++) {
             const uid = Number(profili[i].userId);
-            if (Number.isFinite(uid) && !seen.has(uid)) {
-                seen.add(uid);
-                userIds.push(uid);
+            if (Number.isFinite(uid) && uid > 0) {
+                const k = String(uid);
+                if (!seen[k]) {
+                    seen[k] = true;
+                    userIds.push(uid);
+                }
             }
         }
+        
+        const useri = await userDao.findManyPublicByIds(userIds, null);
 
-        const useri = await db.User.findAll({
-            where: { id: userIds },
-            attributes: ["id", "ime", "prezime", "email", "role"],
-            raw: true,
-        });
-
-        const byId = [];
+        const byId = {};
         for (let i = 0; i < useri.length; i++) {
-            byId[useri[i].id] = useri[i];
+            const u = useri[i];
+            byId[u.id] = u;
         }
 
         const rows = [];
         for (let i = 0; i < profili.length; i++) {
             const p = profili[i];
-            const uid = Number(p.UserId);
+            const uid = Number(p.userId);
             rows.push({ profile: p, user: byId[uid] || null });
         }
 
@@ -120,16 +113,10 @@ class SellerApprovingService {
 
             await sellerProfileDao.updateStatus(uid, "APPROVED", new Date(), t);
 
-            await db.User.update(
-                { role: "Prodavac" },
-                { where: { id: uid }, transaction: t }
-            );
+            const updated = await userDao.updateById(uid, { role: "Prodavac" }, t);
+            if (!updated) throw new Error("User ne postoji!");
 
-            await notificationDao.create({
-                userId: uid,
-                tip: "Prodavac_odobren",
-                payloadJson: { sellerUserId: uid },
-            }, t);
+            await notificationDao.create({ userId: uid, tip: "Prodavac_odobren", payloadJson: { sellerUserId: uid }, }, t);
 
             return true;
         });
@@ -148,11 +135,7 @@ class SellerApprovingService {
 
             await sellerProfileDao.updateStatus(uid, "REJECTED", new Date(), t);
 
-            await notificationDao.create({
-                userId: uid,
-                tip: "Prodavac_odbijen",
-                payloadJson: { sellerUserId: uid },
-            }, t);
+            await notificationDao.create({ userId: uid, tip: "Prodavac_odbijen", payloadJson: { sellerUserId: uid }, }, t);
 
             return true;
         })

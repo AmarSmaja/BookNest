@@ -1,6 +1,63 @@
 const db = require("../models");
 
 class OrderDao {
+    create(data, t) {
+        if (t) return db.Order.create(data, { transaction: t });
+        
+        return db.Order.create(data);
+    }
+
+    createOrderItem(data, t) {
+        if (t) return db.OrderItem.create(data, { transaction: t });
+        
+        return db.OrderItem.create(data);
+    }
+
+    listOrderItemBookIds(orderId, t) {
+        const oid = Number(orderId);
+        if (!Number.isFinite(oid)) return Promise.resolve([]);
+
+        const opts = { where: { orderId: oid }, attributes: ["bookId"], raw: true };
+        if (t) opts.transaction = t;
+
+        return db.OrderItem.findAll(opts);
+    }
+
+    listByOrder(orderId, t) {
+        const opts = {
+            where: { orderId: orderId },
+            order: [["id", "ASC"]],
+            include: [{ model: db.Book, as: "knjiga", required: false }],
+        };
+        if (t) opts.transaction = t;
+        
+        return db.OrderItem.findAll(opts);
+    }
+
+    listBookIdsByOrder(orderId, t) {
+        const opts = {
+            where: { orderId: orderId },
+            attributes: ["bookId"],
+            raw: true,
+        };
+        if (t) opts.transaction = t;
+        return db.OrderItem.findAll(opts);
+    }
+
+    listByBuyer(userId, t) {
+        const opts = { where: { kupacId: userId }, order: [["id", "ASC"]] };
+        if (t) opts.transaction = t;
+
+        return db.Order.findAll(opts);
+    }
+
+    updateByIdForBuyer(orderId, buyerId, patch, t) {
+        const opts = { where: { id: orderId, kupacId: buyerId } };
+        if (t) opts.transaction = t;
+
+        return db.Order.update(patch, opts);
+    }
+
     async findForSeller(sellerId) {
         return db.Order.findAll({
             where: { prodavacId: sellerId },
@@ -13,6 +70,20 @@ class OrderDao {
             where: { id: orderId, prodavacId: sellerId },
         });
     }
+
+    findOwnedByBuyer(orderId, buyerId, t) {
+        const opts = { where: { id: orderId, kupacId: buyerId } };
+        if (t) opts.transaction = t;
+
+        return db.Order.findOne(opts);
+    }
+
+    findOne(orderId, bookId, t) {
+        const opts = { where: { orderId: orderId, bookId: bookId } };
+        if (t) opts.transaction = t;
+
+        return db.OrderItem.findOne(opts);
+    } 
 
     findOneByOrderAndBook(orderId, bookId, t) {
         const opts = { where: { orderId, bookId } };

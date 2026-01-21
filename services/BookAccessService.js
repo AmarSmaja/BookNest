@@ -1,4 +1,3 @@
-const db = require("../models");
 const orderItemDao = require("../dao/OrderDao");
 
 function toBool(v) {

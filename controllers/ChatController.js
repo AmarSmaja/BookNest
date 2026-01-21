@@ -71,7 +71,7 @@ class ChatController {
 
             let meId = null;
             if (req.session && req.session.user && req.session.user.id !== undefined && req.session.user.id !== null) {
-                meId = req.session.user.id;
+                meId = Number(req.session.user.id);
             }
             if (!meId) return res.status(401).send("Nisi logovan!");
 

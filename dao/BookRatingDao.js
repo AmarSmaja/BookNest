@@ -5,6 +5,13 @@ class BookRatingDao {
         return db.BookRating.findOne({ where: { kupacId, bookId } });
     }
 
+    findByBuyerAndBook(buyerId, bookId, t) {
+        const opts = { where: { kupacId: buyerId, bookId: bookId } };
+        if (t) opts.transaction = t;
+
+        return db.BookRating.findOne(opts);
+    }
+
     create(data, t) {
         if (t) return db.BookRating.create(data, { transaction: t });
         return db.BookRating.create(data);

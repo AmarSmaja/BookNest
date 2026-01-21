@@ -67,8 +67,8 @@ class PopularBooksService {
             }
 
             let brojZavrsenih = 0;
-            if (r.brojZavrsenih != null) {
-                const k = Number(r.brojZavrsenih);
+            if (r.brojZavrsenihNarudzbi != null) {
+                const k = Number(r.brojZavrsenihNarudzbi);
                 if (Number.isFinite(k)) brojZavrsenih = k;
             }
 
@@ -76,7 +76,7 @@ class PopularBooksService {
                 id: r.id,
                 naziv: r.naziv,
                 autor: r.autor,
-                glavnaSlikaUrl: r.photo_url,
+                photo_url: r.photo_url,
                 cijena: r.cijena,
                 status: r.status,
                 prodavacId: r.prodavacId,

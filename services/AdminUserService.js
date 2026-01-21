@@ -1,5 +1,6 @@
 const db = require("../models");
 const userDao = require("../dao/UserDao");
+const bookDao = require("../dao/BookDao");
 
 class AdminUserService {
     async listUsers(adminUser) {
@@ -15,9 +16,13 @@ class AdminUserService {
         if (uid === adminUser.id) throw new Error("Ne mozes mijenjati svoju ulogu!");
 
         const dopusteno = ["Admin", "Prodavac", "Kupac"];
-        if (!dopusteno.includes(role)) throw new Error("Neispravna uloga!");
 
-        const updated = await userDao.updateById(uid, { role: role });
+        let r = "";
+        if (role != null) r = String(role).trim();
+
+        if (dopusteno.indexOf(r) === -1) throw new Error("Neispravna uloga!");
+
+        const updated = await userDao.updateById(uid, { role: r });
         if (!updated) throw new Error("User ne postoji!");
 
         return updated;
@@ -31,29 +36,30 @@ class AdminUserService {
         if (uid === adminUser.id) throw new Error("Ne mozes mijenjati svoj status!");
 
         const dopusteno = ["Aktivan", "Deaktiviran", "Arhiviran", "Blokiran"];
-        if (!dopusteno.includes(status)) throw new Error("Neispravan status!");
 
-        const u = await db.User.findByPk(uid);
-        if (!u) throw new Error("User ne postoji");
+        let s = "";
+        if (status != null) s = String(status).trim();
 
-        if (u.role === "Prodavac") {
-            if (status === "Blokiran" || status === "Deaktiviran" || status === "Arhiviran") {
-                await db.Book.update(
-                    { status: "Arhivirana" },
-                    { where: { prodavacId: uid } }
-                );
+        if (dopusteno.indexOf(s) === -1) throw new Error("Neispravan status!");
+        
+        return db.sequelize.transaction(async (t) => {
+            const u = await userDao.findById(uid, t);
+            if (!u) throw new Error("User ne postoji!");
+
+            if (u.role === "Prodavac") {
+                if (s === "Blokiran" || s === "Deaktiviran" || s === "Arhiviran") {
+                    await bookDao.archiveAllBySellerId(uid, t);
+                }
             }
-        }
 
-        let blokiranDo = u.blokiranDo;
-        if (status !== "Blokiran") {
-            blokiranDo = null;
-        }
+            let blokiranDo = u.blokiranDo;
+            if (s !== "Blokiran") blokiranDo = null;
 
-        const updated = await userDao.updateById(uid, { status: status, blokiranDo: blokiranDo });
-        if (!updated) throw new Error("User ne postoji");
+            const updated = await userDao.updateById(uid, { status: s, blokiranDo: blokiranDo }, t);
+            if (!updated) throw new Error("User ne postoji!");
 
-        return updated;
+            return updated;
+        });
     }
 
     async blockUser(adminUser, userId, daniIliNull) {
@@ -75,21 +81,18 @@ class AdminUserService {
         }
 
         return db.sequelize.transaction(async (t) => {
-            const u = await db.User.findByPk(uid, { transaction: t });
+            const u = await userDao.findById(uid, t);
             if (!u) throw new Error("User ne postoji!");
 
             if (u.role === "Prodavac") {
-                await db.Book.update(
-                    { status: "Arhivirana" },
-                    { where: { prodavacId: uid }, transaction: t }
-                );
+                await bookDao.archiveAllBySellerId(uid, t);
             }
 
-            const updated = await userDao.updateById(uid, { status: "Blokiran", blokiranDo: blokiranDo });
+            const updated = await userDao.updateById(uid, { status: "Blokiran", blokiranDo: blokiranDo }, t);
             if (!updated) throw new Error("User ne postoji!");
 
             return updated;
-        })
+        });
     }
 
     async unblockUser(adminUser, userId) {

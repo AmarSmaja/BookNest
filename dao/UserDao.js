@@ -41,6 +41,29 @@ class UserDao {
         if (t) opts.transaction = t;
         return db.User.findByPk(id, opts);
     }
+
+    findManyPublicByIds(ids, t) {
+        const clean = [];
+        const seen = {};
+
+        for (let i = 0; i < (ids || []).length; i++) {
+            const n = Number(ids[i]);
+            if (Number.isFinite(n) && n > 0) {
+                const k = String(n);
+                if (!seen[k]) {
+                    seen[k] = true;
+                    clean.push(n);
+                }
+            }
+        }
+
+        if (clean.length === 0) return Promise.resolve([]);
+
+        const opts = { where: { id: clean }, attributes: ["id", "ime", "prezime", "email", "role"], raw: true };
+        if (t) opts.transaction = t;
+
+        return db.User.findAll(opts);
+    }
 }
 
 module.exports = new UserDao();

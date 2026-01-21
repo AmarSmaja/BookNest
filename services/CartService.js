@@ -1,5 +1,4 @@
 const cartDao = require("../dao/CartDao");
-const db = require("../models");
 
 class CartService {
     async addToCart(user, body) {

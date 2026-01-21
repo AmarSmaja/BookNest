@@ -1,5 +1,7 @@
 const db = require("../models");
 const notificationDao = require("../dao/NotificationDao");
+const bookDao = require("../dao/BookDao");
+const adminStatsDao = require("../dao/AdminStatsDao");
 
 class ReportsService {
     async getBookForForm(bookId) {
@@ -29,14 +31,12 @@ class ReportsService {
         let razlogTxt = null;
         if (razlog != null) {
             const s = String(razlog).trim();
-            if (s.length > 0) {
-                razlogTxt = s;
-            }
+            if (s.length > 0) razlogTxt = s;
         }
         if (!razlogTxt) throw new Error("Moras unijeti razlog prijave!");
 
         return db.sequelize.transaction(async (t) => {
-            const book = await db.Book.findByPk(id, { transaction: t });
+            const book = await bookDao.findById(id, t);
             if (!book) throw new Error("Knijga nije pronadjena!");
 
             if (Number(book.prodavacId) === Number(user.id)) throw new Error("Ne mozes prijaviti svoju knjigu!");
@@ -48,14 +48,9 @@ class ReportsService {
                 razlog: razlogTxt,
                 status: "Otvoren",
                 rijesioAdminId: null,
-            }, { transaction: t });
+            }, t);
 
-            const admini = await db.User.findAll({
-                where: { role: "Admin" },
-                attributes: ["id"],
-                raw: true,
-                transaction: t,
-            });
+            const admini = await adminStatsDao.listAdminIds(t);
 
             for (let i = 0; i < admini.length; i++) {
                 const adminId = Number(admini[i].id);

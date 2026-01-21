@@ -2,6 +2,7 @@ const db = require("../models");
 const bookCommentDao = require("../dao/BookCommentDao");
 const notificationDao = require("../dao/NotificationDao");
 const bookDao = require("../dao/BookDao");
+const orderDao = require("../dao/OrderDao");
 
 class BookCommentService {
     async ostaviKomentarZaNarudzbu(user, orderId, bookId, sadrzaj) {
@@ -20,48 +21,28 @@ class BookCommentService {
 
         if (tekst.length === 0) throw new Error("Komentar ne smije biti prazan!");
         if (tekst.length > 2000) throw new Error("Komentar ne smije imati vise od 2000 karaktera!");
-
-        const knjiga = await db.Book.findByPk(bid);
-        if (!knjiga) throw new Error("Knjiga ne postoji!");
-        if (knjiga.prodavacId === user.id) throw new Error("Ne mozes komentarisati svoju knjigu!");
-
-        const narudzba = await db.Order.findOne({
-            where: { id: oid, kupacId: user.id }
-        });
-        if (!narudzba) throw new Error("Narudzba nije pronadjena!");
-        if (narudzba.status !== "Zavrsena") throw new Error("Komentar mozes ostaviti tek nakon zavrsene narudzbe!");
-
-        const stavka = await db.OrderItem.findOne({
-            where: { orderId: oid, bookId: bid }
-        });
-        if (!stavka) throw new Error("Ova knjiga nije u toj narudzbi!");
-
-        const postoji = await bookCommentDao.findByBuyerOrderBook(user.id, oid, bid);
-        if (postoji) throw new Error("Vec si ostavio komentar za ovu knjigu u ovoj narudzbi!");
-
+        
         return db.sequelize.transaction(async (t) => {
-            const komentar = await bookCommentDao.create({
-                bookId: bid,
-                kupacId: user.id,
-                orderId: oid,
-                sadrzaj: tekst, 
-                uredjenAt: null,
-                obrisanAt: null,
-            }, t);
+            const knjiga = await bookDao.findById(bid, t);
+            if (!knjiga) throw new Error("Knjiga ne postoji!");
+            if (Number(knjiga.prodavacId) === Number(user.id)) throw new Error("Ne mozes komentarisati svoju knjigu!");
 
-            await notificationDao.create({
-                userId: knjiga.prodavacId,
-                tip: "Novi_komentar_knjige",
-                payloadJson: {
-                    bookId: bid,
-                    kupacId: user.id,
-                    orderId: oid,
-                    commentId: komentar.id,
-                },
-            }, t);
+            const narudzba = await orderDao.findOwnedByBuyer(oid, user.id, t);
+            if (!narudzba) throw new Error("Narudzba nije pronadjena!");
+            if (narudzba.status !== "Zavrsena") throw new Error("Komentar mozes ostaviti tek nakon zavrsene narudzbe!");
+
+            const stavka = await orderDao.findOne(oid, bid, t);
+            if (!stavka) throw new Error("Ova knjiga nije u toj narudzbi");
+
+            const postoji = await bookCommentDao.findByBuyerOrderBook(user.id, oid, bid, t);
+            if (postoji) throw new Error("Vec si ostavio komentar za ovu knjigu u ovoj narudzbi!");
+
+            const komentar = await bookCommentDao.create({ bookId: bid, kupacId: user.id, orderId: oid, sadrzaj: tekst, uredjenAt: null, obrisanAt: null }, t);
+
+            await notificationDao.create({ userId: knjiga.prodavacId, tip: "Novi_komentar_knjige", payloadJson: { bookId: bid, kupacId: user.id, orderId: oid, commentId: komentar.id } }, t);
 
             return komentar;
-        });
+        })
     }
 
     async izlistajKnjigu(bookId) {

@@ -66,6 +66,69 @@ class ExchangeDao {
             { where: { id: exchangeId }, transaction: t }
         );
     }
+
+    listRequestedBookIds(exchangeId, t) {
+        const opts = {
+            where: { exchangeId: exchangeId },
+            attributes: ["bookId"],
+            raw: true,
+        };
+        if (t) opts.transaction = t;
+
+        return db.ExchangeRequestedBook.findAll(opts);
+    }
+
+    listOfferedBooks(exchangeId, t) {
+        const opts = {
+            where: { exchangeId: exchangeId },
+            attributes: ["bookId"],
+            raw: true,
+        };
+        if (t) opts.transaction = t;
+
+        return db.ExchangeOfferedBook.findAll(opts);
+    }
+
+    async getAllBookIds(exchangeId, t) {
+        const id = Number(exchangeId);
+        if (!Number.isFinite(id)) return [];
+
+        const reqOpts = { where: { exchangeId: id }, attributes: ["bookId"], raw: true };
+        if (t) reqOpts.transaction = t;
+
+        const offOpts = { where: { exchangeId: id }, attributes: ["bookId"], raw: true };
+        if (t) offOpts.transaction = t;
+
+        const requestedRows = await db.ExchangeRequestedBook.findAll(reqOpts);
+        const offeredRows = await db.ExchangeOfferedBook.findAll(offOpts);
+
+        const ids = [];
+        const seen = {};
+
+        for (let i = 0; i < requestedRows.legth; i++) {
+            const n = Number(requestedRows[i].bookId);
+            if (Number.isFinite(n) && n > 0) {
+                const k = String(n);
+                if (!seen[k]) {
+                    seen[k] = true;
+                    ids.push(n);
+                }
+            }
+        }
+
+        for (let i = 0; i < offeredRows.length; i++) {
+            const n = Number(offeredRows[i].bookId);
+            if (Number.isFinite(n) && n > 0) {
+                const k = String(n);
+                if (!seen[k]) {
+                    seen[k] = true;
+                    ids.push(n);
+                }
+            }
+        }
+
+        return ids;
+    }
 }
 
 module.exports = new ExchangeDao();

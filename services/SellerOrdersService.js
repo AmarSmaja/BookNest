@@ -1,6 +1,7 @@
 const db = require("../models");
 const orderDao = require("../dao/OrderDao");
 const notificationDao = require("../dao/NotificationDao");
+const bookDao = require("../dao/BookDao");
 
 const DOPUSTENO = ["Na_cekanju", "Prihvacena", "Odbijena", "Zavrsena", "Otkazana"];
 const NEDOPUSTENO = ["Odbijena", "Otkazana", "Zavrsena"];
@@ -46,64 +47,51 @@ class SellerOrdersService {
         return db.sequelize.transaction(async (t) => {
             await orderDao.updateStatus(narudzba.id, user.id, noviStatus, t);
 
-            await notificationDao.create({
-                userId: narudzba.kupacId,
-                tip: "Status_narudzbe",
-                payloadJson: {
-                    orderId: narudzba.id,
-                    status: noviStatus,
-                }
-            }, t);
+            await notificationDao.create({ userId: narudzba.kupacId, tip: "Status_narudzbe", payloadJson: { orderId: narudzba.id, status: noviStatus, } }, t);
 
-            const rows = await db.OrderItem.findAll({
-                where: { orderId: narudzba.id },
-                attributes: ["bookId"],
-                raw: true,
-                transaction: t,
-            });
+            const rows = await orderDao.listOrderItemBookIds(narudzba.id, t);
 
             let counts = {};
             let bookIds = [];
 
             for (let i = 0; i < rows.length; i++) {
-                let bid = Number(rows[i].bookId);
+                const bid = Number(rows[i].bookId);
                 if (Number.isFinite(bid)) {
-                    if (!counts[bid]) {
-                        counts[bid] = 1;
-                        bookIds.push(bid);
+                    const key = String(bid);
+                    if (counts[key] === undefined) {
+                        counts[key] = 1;
+                        bookIds.push(bid)
                     } else {
-                        counts[bid] = counts[bid] + 1;
+                        counts[key] = counts[key] + 1;
                     }
                 }
             }
 
             if (noviStatus === "Odbijena" || noviStatus === "Otkazana") {
                 for (let j = 0; j < bookIds.length; j++) {
-                    let bookId = bookIds[j];
-                    let dodatak = Number(counts[bookId]);
-                    if (!Number.isFinite(dodatak) || dodatak <= 0) dodatak = 0;
+                    const bookId = bookIds[j];
 
-                    const knjiga = await db.Book.findOne({ where: { id: bookId }, transaction: t, lock: t.LOCK.UPDATE });
+                    let dodatak = 0;
+                    const key = String(bookId);
+                    if (counts[key] !== undefined) {
+                        const n = Number(counts[key]);
+                        if (Number.isFinite(n) && n > 0) dodatak = n;
+                    }
 
+                    const knjiga = await bookDao.findByIdForUpdate(bookId, t);
                     if (knjiga) {
                         let stanje = Number(knjiga.kolicinaDostupno);
                         if (!Number.isFinite(stanje)) stanje = 0;
 
-                        let novoStanje = stanje + dodatak;
+                        const novoStanje = stanje + dodatak;
 
                         let noviBookStatus = knjiga.status;
                         if (knjiga.status !== "Arhivirana") {
-                            if (novoStanje > 0) {
-                                noviBookStatus = "Aktivna";
-                            } else {
-                                noviBookStatus = "Rezervisana";
-                            }
+                            if (novoStanje > 0) noviBookStatus = "Aktivna";
+                            else noviBookStatus = "Rezervisana";
                         }
 
-                        await knjiga.update(
-                            { kolicinaDostupno: novoStanje, status: noviBookStatus },
-                            { transaction: t }
-                        );
+                        await bookDao.updateById(bookId, { kolicinaDostupno: novoStanje, status: noviBookStatus }, t);
                     }
                 }
 
@@ -113,10 +101,9 @@ class SellerOrdersService {
 
             if (noviStatus === "Zavrsena") {
                 for (let k = 0; k < bookIds.length; k++) {
-                    let bId = bookIds[k];
+                    const bId = bookIds[k];
 
-                    const knjiga2 = await db.Book.findOne({ where: { id: bId }, transaction: t, lock: t.LOCK.UPDATE });
-
+                    const knjiga2 = await bookDao.findByIdForUpdate(bId, t);
                     if (knjiga2) {
                         let stanje2 = Number(knjiga2.kolicinaDostupno);
                         if (!Number.isFinite(stanje2)) stanje2 = 0;
@@ -124,21 +111,16 @@ class SellerOrdersService {
                         let status2 = knjiga2.status;
 
                         if (knjiga2.status !== "Arhivirana") {
-                            if (stanje2 === 0) {
-                                status2 = "Prodana/Razmjenjena";
-                            } else {
-                                status2 = "Aktivna";
-                            }
+                            if (stanje2 === 0) status2 = "Prodana/Razmjenjena";
+                            else status2 = "Aktivna";
                         }
 
-                        await knjiga2.update(
-                            { status: status2 },
-                            { transaction: t }
-                        );
+                        await bookDao.updateInstance(knjiga2, { status: status2 }, t);
                     }
                 }
 
                 await orderDao.markCompleted(narudzba.id, user.id, t);
+                
                 return;
             }
         });

@@ -6,16 +6,16 @@ const lookupDao = require("../dao/LookupDao");
 
 class AuthService {
     _normalizeIdList(value) {
-        var ids = [];
-        var seen = {};
+        let ids = [];
+        let seen = {};
 
         if (value === undefined || value === null) return ids;
 
         if (Array.isArray(value)) {
-            for (var i = 0; i < value.length; i++) {
-                var n = Number(value[i]);
+            for (let i = 0; i < value.length; i++) {
+                let n = Number(value[i]);
                 if (Number.isFinite(n) && n > 0) {
-                    var key = String(n);
+                    let key = String(n);
                     if (!seen[key]) {
                         seen[key] = true;
                         ids.push(n);
@@ -25,9 +25,9 @@ class AuthService {
             return ids;
         }
 
-        var one = Number(value);
+        let one = Number(value);
         if (Number.isFinite(one) && one > 0) {
-            var key2 = String(one);
+            let key2 = String(one);
             if (!seen[key2]) {
                 seen[key2] = true;
                 ids.push(one);
@@ -38,6 +38,7 @@ class AuthService {
     }
 
     async register({ ime, prezime, email, password, zanrovi, jezici }) {
+
         const postoji = await userDao.findByEmail(email);
         if (postoji) throw new Error("Vec postoji korisnik sa tim E-mailom.");
 
@@ -47,8 +48,8 @@ class AuthService {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        var genreIds = this._normalizeIdList(zanrovi);
-        var languageIds = this._normalizeIdList(jezici);
+        const genreIds = this._normalizeIdList(zanrovi);
+        const languageIds = this._normalizeIdList(jezici);
 
         return db.sequelize.transaction(async (t) => {
             const user = await db.User.create(
@@ -71,18 +72,13 @@ class AuthService {
 
     async login({ email, password }) {
         const user = await userDao.findByEmail(email);
-        if (!user) throw new Error("Neispravan mail ili password.");
+        if (!user) throw new Error("Neispravan email!");
 
-        if (user.status === "Deaktiviran" || user.status === "Arhiviran") {
-            throw new Error("Nalog nije aktivan.");
-        }
-
-        if (user.blokiranDo && new Date(user.blokiranDo) > new Date()) {
-            throw new Error("Nalog je blokiran do: " + new Date(user.blokiranDo).toLocaleString());
-        }
+        if (user.status === "Deaktiviran" || user.status === "Arhiviran") throw new Error("Nalog nije aktivan!");
+        if (user.blokiranDo && new Date(user.blokiranDo) > new Date()) throw new Error("Account je blokiran do: " + new Date(user.blokiranDo).toLocaleString());
 
         const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) throw new Error("Neispravan email ili password.");
+        if (!ok) throw new Error("Neispravan password!");
 
         return user;
     }

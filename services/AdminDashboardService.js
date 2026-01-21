@@ -1,20 +1,13 @@
-const db = require("../models");
+const adminStatsDao = require("../dao/AdminStatsDao");
 
 class AdminDashboardService {
     async getOverview() {
-        const pendingSeller = await db.SellerProfile.count({ where: { status: "PENDING" }, });
-        
-        const openReports = await db.Report.count({ where: { status: ["Otvoren", "U_obradi"] }});
+        const pendingSeller = await adminStatsDao.countPendingSellerProfiles();
+        const openReports = await adminStatsDao.countOpenReports();
+        const totalUsers = await adminStatsDao.countUsers();
+        const totalBooks = await adminStatsDao.countBooks();
 
-        const totalUsers = await db.User.count();
-        const totalBooks = await db.Book.count();
-
-        return {
-            pendingSeller: pendingSeller,
-            openReports: openReports,
-            totalUsers: totalUsers,
-            totalBooks: totalBooks,
-        };
+        return { pendingSeller: pendingSeller, openReports: openReports, totalUsers: totalUsers, totalBooks: totalBooks };
     }
 }
 

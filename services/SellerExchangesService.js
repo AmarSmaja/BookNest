@@ -1,6 +1,8 @@
 const db = require("../models");
 const exchangeDao = require("../dao/ExchangeDao");
 const notificationDao = require("../dao/NotificationDao");
+const exchangeRequestDao = require("../dao/ExchangeRequestDao");
+const bookDao = require("../dao/BookDao");
 
 const DOPUSTENO = ["Na_cekanju", "Prihvacena", "Odbijena", "Otkazana", "Zavrsena"];
 const NEDOPUSTENO = ["Odbijena", "Otkazana", "Zavrsena"];
@@ -22,7 +24,10 @@ function extractAllBookIds(detail) {
             if (!r) continue;
             const n = Number(r.bookId);
             if (!Number.isFinite(n)) continue;
-            if (!seen.has(n)) { seen.add(n); ids.push(n); }
+            if (!seen.has(n)) { 
+                seen.add(n); 
+                ids.push(n); 
+            }
         }
     }
 
@@ -31,56 +36,20 @@ function extractAllBookIds(detail) {
             if (!r) continue;
             const n = Number(r.bookId);
             if (!Number.isFinite(n)) continue;
-            if (!seen.has(n)) { seen.add(n); ids.push(n); }
+            if (!seen.has(n)) { 
+                seen.add(n); 
+                ids.push(n); 
+            }
         }
     }
 
     return ids;
 }
 
-function uniqueIntovi(arr) {
-    const s = new Set();
-    for (const x of arr || []) {
-        const n = Number(x);
-        if (Number.isFinite(n)) s.add(n);
-    }
-    return Array.from(s);
-}
-
-async function uzmiBookIdsZaRazmjenu(db, exchangeId, t) {
-    const requestedRows = await db.ExchangeRequestedBook.findAll({
-        where: { exchangeId: exchangeId },
-        attributes: ["bookId"],
-        raw: true,
-        transaction: t,
-    });
-
-    const offeredRows = await db.ExchangeOfferedBook.findAll({
-        where: { exchangeId: exchangeId },
-        attributes: ["bookId"],
-        raw: true,
-        transaction: t,
-    });
-
-    const allIds = [];
-
-    for (let i = 0; i < requestedRows.length; i++) {
-        const v = Number(requestedRows[i].bookId);
-        if (Number.isFinite(v)) allIds.push(v);
-    }
-
-    for (let i = 0; i < offeredRows.length; i++) {
-        const v = Number(offeredRows[i].bookId);
-        if (Number.isFinite(v)) allIds.push(v);
-    }
-
-    return uniqueIntovi(allIds);
-}
-
 class SellerExchangesService {
     async izlistajMoje(user) {
         if (user.role === "Admin") {
-            return db.ExchangeRequest.findAll({ order: [["id", "ASC"]] });
+            return exchangeRequestDao.findAll(null);
         }
 
         return exchangeDao.findSellerList(user.id);
@@ -111,12 +80,10 @@ class SellerExchangesService {
 
             await exchangeDao.updateStatus(razmjena.id, STATUS.PRIH, t);
 
-            await notificationDao.create({
-                userId: razmjena.kupacId,
-                tip: "Status_razmjene",
-                payloadJson: { exchangeId: razmjena.id, status: STATUS.PRIH }
-            }, t);
-        })
+            await notificationDao.create({ userId: razmjena.kupacId, tip: "Status_razmjene", payloadJson: { exchangeId: razmjena.id, status: STATUS.PRIH } }, t);
+
+            return true;
+        });
     }
 
     async reject(user, exchangeId) {
@@ -136,18 +103,11 @@ class SellerExchangesService {
             await exchangeDao.updateStatus(razmjena.id, STATUS.ODB, t);
             await exchangeDao.oznaciZavrseno(razmjena.id, t);
 
-            if (allBookIds.length > 0) {
-                await db.Book.update(
-                    { status: "Aktivna" },
-                    { where: { id: allBookIds }, transaction: t }
-                );
-            }
+            if (allBookIds.length > 0) await bookDao.updateStatusByIds(allBookIds, "Aktivna", t);
 
-            await notificationDao.create({
-                userId: razmjena.kupacId,
-                tip: "Status_razmjene",
-                payloadJson: { exchangeId: razmjena.id, status: STATUS.ODB }
-            }, t);
+            await notificationDao.create({ userId: razmjena.kupacId, tip: "Status_razmjene", payloadJson: { exchangeId: razmjena.id, status: STATUS.ODB } }, t);
+
+            return true;
         });
     }
 
@@ -166,18 +126,11 @@ class SellerExchangesService {
             await exchangeDao.updateStatus(razmjena.id, STATUS.ZAV, t);
             await exchangeDao.oznaciZavrseno(razmjena.id, t);
 
-            if (allBookIds.length > 0) {
-                await db.Book.update(
-                    { status: "Prodana/Razmjenjena" },
-                    { where: { id: allBookIds }, transaction: t }
-                );
-            }
+            if (allBookIds.length > 0) await bookDao.updateStatusByIds(allBookIds, "Prodana/Razmjenjena", t);
 
-            await notificationDao.create({
-                userId: razmjena.kupacId,
-                tip: "Status_razmjene",
-                payloadJson: { exchangeId: razmjena.id, status: STATUS.ZAV }
-            }, t);
+            await notificationDao.create({ userId: razmjena.kupacId, tip: "Status_razmjene", payloadJson: { exchangeId: razmjena.id, status: STATUS.ZAV } }, t);
+
+            return true;
         });
     }
 
@@ -206,63 +159,33 @@ class SellerExchangesService {
         if (user && user.role === "Admin") {
             razmjena = await exchangeDao.findById(id);
         } else {
-            const any = await db.ExchangeRequest.findByPk(id, { raw: true });
-            console.log("EXCHANGE IN DB:", any);
             razmjena = await exchangeDao.findOwnedBySeller(id, user.id);
         }
 
-        console.log("CHANGE STATUS TRY:", {
-            userId: user.id,
-            role: user.role,
-            exchangeId: id,
-            noviStatus: noviStatus,
-            found: !!razmjena,
-            foundKupacId: razmjena ? razmjena.kupacId : null,
-            foundProdavacId: razmjena ? razmjena.prodavacId : null,
-        });
-
         if (!razmjena) throw new Error("Razmjena nije pronadjena!");
-
         if (NEDOPUSTENO.indexOf(razmjena.status) !== -1) throw new Error("Ne mozes mijenjati status zavrsene narudzbe!");
 
         return db.sequelize.transaction(async (t) => {
             await exchangeDao.updateStatus(id, noviStatus, t);
 
-            const bookIds = await uzmiBookIdsZaRazmjenu(db, id, t);
+            const bookIds = await exchangeDao.getAllBookIds(id, t);
 
-            if (noviStatus === "Odbijena") {
+            if (noviStatus === STATUS.ODB) {
                 if (bookIds.length > 0) {
-                    await db.Book.update(
-                        { status: "Aktivna" },
-                        { where: { id: bookIds }, transaction: t }
-                    );
+                    await bookDao.updateStatusByIds(bookIds, "Aktivna", t);
                 }
-
+                await exchangeDao.oznaciZavrseno(id, t);
+            }
+            
+            if (noviStatus === STATUS.ZAV) {
+                if (bookIds.length > 0) {
+                    await bookDao.updateStatusByIds(bookIds, "Prodana/Razmjenjena", t);
+                }
                 await exchangeDao.oznaciZavrseno(id, t);
             }
 
-            if (noviStatus === "Zavrsena") {
-                if (bookIds.length > 0) {
-                    await db.Book.update(
-                        { status: "Prodana/Razmjenjena" },
-                        { where: { id: bookIds }, transaction: t }
-                    );
-                }
-
-                await exchangeDao.oznaciZavrseno(id, t);
-            }
-
-            await notificationDao.create({
-                userId: razmjena.kupacId,
-                tip: "Status_razmjene",
-                payloadJson: { exchangeId: razmjena.id, status: noviStatus },
-            }, t);
-
-            await notificationDao.create({
-                userId: razmjena.prodavacId,
-                tip: "Status_razmjene",
-                payloadJson: { exchangeId: razmjena.id, status: noviStatus },
-            }, t);
+            await notificationDao.create({ userId: razmjena.kupacId, tip: "Status_razmjene", payloadJson: { exchangeId: razmjena.id, status: noviStatus }, }, t);
+            await notificationDao.create({ userId: razmjena.prodavacId, tip: "Status_razmjene", payloadJson: { exchangeId: razmjena.id, status: noviStatus }, }, t);
 
             return true;
         })

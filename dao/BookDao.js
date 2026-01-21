@@ -1,6 +1,85 @@
 const db = require("../models");
+const { Op, literal } = require("sequelize");
 
 class BookDao {
+    findById(id, t) {
+        const opts = {};
+        if (t) opts.transaction = t;
+
+        return db.Book.findByPk(id, opts);
+    }
+
+    findByIdForUpdate(bookId, t) {
+        if (!t) return db.Book.findByPk(bookId);
+        return db.Book.findOne({ where: { id: bookId }, transaction: t, lock: t.LOCK.UPDATE });
+    }
+
+    async updateById(bookId, patch, t) {
+        const book = await this.findByIdForUpdate(bookId, t);
+        if (!book) return null;
+
+        if (t) return book.update(patch, { transaction: t });
+        return book.update(patch);
+    }
+
+    updateInstance(book, patch, t) {
+        if (!book) return null;
+        return book.update(patch, t ? { transaction: t } : undefined);
+    }
+
+    archiveAllBySellerId(sellerId, t) {
+        const opts = { where: { prodavacId: sellerId } };
+        if (t) opts.transaction = t;
+        
+        return db.Book.update({ status: "Arhivirana" }, opts);
+    }
+
+    findAllByIds(ids, t) {
+        const opts = { where: { id: ids } };
+        if (t) opts.transaction = t;
+        
+        return db.Book.findAll(opts);
+    }
+
+    findActiveBySeller(sellerId, t) {
+        const opts = {
+            where: { prodavacId: sellerId, status: "Aktivna" },
+            order: [["id", "DESC"]],
+        };
+        if (t) opts.transaction = t;
+
+        return db.Book.findAll(opts);
+    }
+
+    findActiveByIdsAndSeller(ids, sellerId, t) {
+        const opts = { where: { id: ids, prodavacId: sellerId, status: "Aktivna" } };
+        if (t) opts.transaction = t;
+
+        return db.Book.findAll(opts);
+    }
+
+    updateStatusByIds(ids, status, t) {
+        const opts = { where: { id: ids } };
+        if (t) opts.transaction = t;
+
+        return db.Book.update({ status: status }, opts);
+    }
+
+    incrementQty(bookId, delta, t) {
+        const opts = { where: { id: bookId } };
+        if (t) opts.transaction = t;
+        
+        return db.Book.update({ kolicinaDostupno: literal(`"kolicina_dostupno" + ${Number(delta)}`) }, opts);
+    }
+
+    decrementQtyIfAvailable(bookId, delta, t) {
+        const d = Number(delta);
+        const opts = { where: { id: bookId, status: "Aktivna", kolicinaDostupno: { [Op.gte]: d } } };
+        if (t) opts.transaction = t;
+
+        return db.Book.update({ kolicinaDostupno: literal(`"kolicina_dostupno" - ${d}`) }, opts);
+    }
+
     async listPublic({ limit = 24, offset = 0 } = {}) {
         const sql = `
             SELECT
@@ -413,12 +492,6 @@ class BookDao {
             });
 
             return redovi[0] || null;
-    }
-
-    findById(id, t) {
-        const opts = {};
-        if (t) opts.transaction = t;
-        return db.Book.findByPk(id, opts);
     }
 }
 

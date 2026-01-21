@@ -7,6 +7,6 @@ router.get("/start", requireAuth, chatController.startFromBook);
 router.get("/start/:userId", requireAuth, chatController.start);
 router.get("/:id", requireAuth, chatController.detail);
 router.post("/:id/send", requireAuth, chatController.send);
-router.post("/:id/message", chatController.send.bind(chatController));
+router.post("/:id/message", requireAuth, chatController.send.bind(chatController));
 
 module.exports = router;

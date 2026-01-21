@@ -2,6 +2,54 @@ const db = require("../models");
 const { Op } = require("sequelize");
 
 class AdminStatsDao {
+    countPendingSellerProfiles() {
+        return db.SellerProfile.count({ where: { status: "PENDING" } });
+    }
+
+    countOpenReports() {
+        return db.Report.count({ where: { status: ["Otvoren", "U_obradi"] } });
+    }
+
+    countUsers() {
+        return db.User.count();
+    }
+
+    countBooks() {
+        return db.Book.count();
+    }
+
+    listOpen() {
+        return db.Report.findAll({ where: { status: ["Otvoren", "U_obradi"] }, order: [["id", "DESC"]] });
+    }
+
+    findById(reportId, t) {
+        const opts = {};
+        if (t) opts.transaction = t;
+
+        return db.Report.findByPk(reportId, opts);
+    }
+
+    listAdminIds(t) {
+        const opts = { where: { role: "Admin" }, attributes: ["id"], raw: true };
+        if (t) opts.transaction = t;
+
+        return db.User.findAll(opts);
+    }
+
+    updateStatusAndResolver(reportId, status, rijesioAdminId, t) {
+        const opts = { where: { id: reportId } };
+        if (t) opts.transaction = t;
+
+        return db.Report.update({ status: status, rijesioAdminId: rijesioAdminId }, opts);
+    }
+
+    updateBookStatus(bookId, status, t) {
+        const opts = { where: { id: bookId } };
+        if (t) opts.transaction = t;
+
+        return db.Book.update({ status: status }, opts);
+    }
+
     async getBooksByStatus() {
         const rows = await db.Book.findAll({
             attributes: [
