@@ -2,6 +2,10 @@
 
 BookNest je web aplikacija za kupovinu i razmjenu polovnih knjiga. Korisnici mogu pregledati katalog, filtrirati knjige, dodavati u korpu, praviti narudžbe, započeti chat sa prodavcem, te ostavljati ocjene i komentare nakon završene kupovine. Sistem uključuje i prijave (reports), notifikacije, te admin dio za moderaciju i upravljanje.
 
+## Dodatne stavke
+
+- **Postavni prodavac** - dodana mogucnost prijave za prodavaca.
+
 ## Tehnologije
 
 - **Node.js + Express.js** (backend)
